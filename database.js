@@ -13,7 +13,7 @@ const db = new Client({
 
 db.connect();
 
-async function getActiveLobby() {
+async function getActiveLobbies() {
     let query = `select lobbyID from lobby;`;
     try{
         let dbRes = await db.query(query);
@@ -35,4 +35,5 @@ function addNewLobby(lobbyID) {
     db.query(query, [lobbyID]);
 }
 
-export {getActiveLobby, addNewLobby};
+
+export {getActiveLobbies, addNewLobby};

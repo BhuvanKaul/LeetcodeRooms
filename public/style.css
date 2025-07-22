@@ -3,3 +3,17 @@ button{
     display: block;
     margin-bottom: 10px;
 }
+
+.joinRoomPopUp{
+    display: none;
+    z-index: 1;
+    left: 0;
+    top:0;
+    background-color: lightblue;
+}
+
+.closeBtn{
+    display: block;
+    right:15px;
+    cursor: pointer;
+}
