@@ -1,4 +1,3 @@
-console.log('Script loaded');
 document.addEventListener('DOMContentLoaded',()=>{
     const message = document.querySelector('.lobbyMsg');
     function getID(url){
