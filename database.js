@@ -39,4 +39,9 @@ async function addUser(lobbyId, userId){
     }
 }
 
-export {getActiveLobbies, addNewLobby, addUser};
+async function removeUser(userId, lobbyId) {
+    let query = 'delete from lobby_members where lobbyid = $1 and userid = $2;';
+    await db.query(query, [lobbyId, userId]);
+}
+
+export {getActiveLobbies, addNewLobby, addUser, removeUser};

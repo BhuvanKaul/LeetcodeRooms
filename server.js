@@ -1,9 +1,11 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {getActiveLobbies, addNewLobby, addUser} from './database.js';
+import {getActiveLobbies, addNewLobby, addUser, removeUser} from './database.js';
 import { makeLobbyID } from './backend_logic.js';
 import dotenv from 'dotenv';
+import http from 'http';
+import {Server} from 'socket.io';
 
 dotenv.config();
 
@@ -12,13 +14,13 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = 3000;
+const server = http.createServer(app);
+const io = new Server(server);
+const socketToUser = new Map();
 
 app.use(express.json());
 app.use(express.static('public'));
 
-app.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
-})
 
 app.post('/lobbies', async (req, res)=> {
     const ownerId = req.body.userId;
@@ -78,3 +80,33 @@ app.get('/lobbies/:lobbyId', async (req, res)=>{
     }
     
 });
+
+
+// WB CODE
+
+io.on("connection", (socket) =>{
+    
+    socket.on("joinLobby", ({lobbyId, userId}) => {
+        socket.join(lobbyId);
+        socketToUser.set(socket.id, {userId, lobbyId});
+        io.to(lobbyId).emit('userJoined', {userId});
+    });
+
+    socket.on("chatMsg", ({lobbyId, userId, message}) =>{
+        io.to(lobbyId).emit("chatMsg", {userId, message});
+    });
+
+    socket.on("disconnect", async ()=>{
+        const info = socketToUser.get(socket.id);
+        if (info){
+            const {userId, lobbyId} = info;
+            await removeUser(userId, lobbyId);
+            socketToUser.delete(socket.id);
+        }
+    });
+})
+
+
+server.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
+})
