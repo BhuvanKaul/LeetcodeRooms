@@ -21,7 +21,8 @@ document.addEventListener('DOMContentLoaded',()=>{
         const newMsg = document.createElement('p');
         newMsg.textContent = `${userId} joined the lobby`;
         allMessages.appendChild(newMsg); 
-    });
+        console.log(`${userId} JOined`)
+    }); 
 
     socket.on('chatMsg', ({userId, message})=>{
         const newMsg = document.createElement('p');

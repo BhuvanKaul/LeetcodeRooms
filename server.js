@@ -1,11 +1,12 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {getActiveLobbies, addNewLobby, addUser, removeUser} from './database.js';
+import {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers} from './database.js';
 import { makeLobbyID } from './backend_logic.js';
 import dotenv from 'dotenv';
 import http from 'http';
 import {Server} from 'socket.io';
+import cors from 'cors';
 
 dotenv.config();
 
@@ -15,11 +16,17 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = 3000;
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
 const socketToUser = new Map();
 
 app.use(express.json());
 app.use(express.static('public'));
+app.use(cors());
 
 
 app.post('/lobbies', async (req, res)=> {
@@ -44,7 +51,6 @@ app.post('/lobbies', async (req, res)=> {
         }
 
         await addNewLobby(requestedLobby, ownerId);
-        await addUser(requestedLobby, ownerId);
         return res.status(201).json({lobbyId: requestedLobby});
 
     }catch(err){
@@ -70,26 +76,16 @@ app.post('/lobbies/:lobbyId/join', async(req, res)=>{
     }
 })
 
-app.get('/lobbies/:lobbyId', async (req, res)=>{
-    const lobbyId = req.params.lobbyId;
-    const activeLobbies = await getActiveLobbies();
-    if (activeLobbies.has(lobbyId)){
-        res.status(200).sendFile(path.join(__dirname, 'public', 'lobbyRoom.html'));
-    } else{
-        res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
-    }
-    
-});
-
-
-// WB CODE
+// WebSockets CODE
 
 io.on("connection", (socket) =>{
     
-    socket.on("joinLobby", ({lobbyId, userId}) => {
+    socket.on("joinLobby", async({lobbyId, userId}) => {
         socket.join(lobbyId);
         socketToUser.set(socket.id, {userId, lobbyId});
         io.to(lobbyId).emit('userJoined', {userId});
+        const users =  await getUsers(lobbyId);
+        io.to(lobbyId).emit('participantsUpdate', {users})
     });
 
     socket.on("chatMsg", ({lobbyId, userId, message}) =>{
@@ -102,6 +98,8 @@ io.on("connection", (socket) =>{
             const {userId, lobbyId} = info;
             await removeUser(userId, lobbyId);
             socketToUser.delete(socket.id);
+            const users = await getUsers(lobbyId);
+            io.to(lobbyId).emit('participantsUpdate', {users})
         }
     });
 })

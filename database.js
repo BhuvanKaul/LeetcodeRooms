@@ -30,13 +30,8 @@ async function addNewLobby(lobbyID, ownerId) {
 }
 
 async function addUser(lobbyId, userId){
-    let query = 'select * from lobby_members where lobbyid = $1 and userid = $2;';
-    let result = await db.query(query, [lobbyId, userId]);
-    const exists = result.rowCount;
-    if (!exists){
-        query = 'insert into lobby_members(lobbyid, userid) values($1, $2);';
-        await db.query(query, [lobbyId, userId]);
-    }
+    const query = 'insert into lobby_members(lobbyid, userid) values($1, $2) on conflict (lobbyid, userid) do nothing';
+    await db.query(query, [lobbyId, userId]);
 }
 
 async function removeUser(userId, lobbyId) {
@@ -44,4 +39,14 @@ async function removeUser(userId, lobbyId) {
     await db.query(query, [lobbyId, userId]);
 }
 
-export {getActiveLobbies, addNewLobby, addUser, removeUser};
+async function getUsers(lobbyId){
+    let query = 'select userid from lobby_members where lobbyid=$1;';
+    const res = await db.query(query, [lobbyId]);
+    const users = [];
+    for(const row of res.rows){
+        users.push(row.userid);
+    }
+    return users;
+}
+
+export {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers};
