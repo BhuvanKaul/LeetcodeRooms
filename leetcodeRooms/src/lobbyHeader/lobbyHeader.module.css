@@ -1,0 +1,37 @@
+.lobbyHeaderContainer{
+    border: black solid;
+    padding: 1.5rem 3rem 1.5rem 3rem;
+    display: flex;
+    height: 100px;
+}
+.headerRightSide{
+    display: flex;
+    margin-left: auto;
+}
+.lobbyId{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 2.5rem;
+    padding: 0.5rem;
+    font-size: 1rem;
+    font-weight: 550;
+    border-radius: 10px;
+    background-color: hsl(216, 20%, 95%);
+}
+.startCompetitionButton{
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: hsl(115, 100%, 45%);
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+}
+.playIcon{
+    margin-right: 0.8rem;
+    width: 1.2rem;
+    height: 1.2rem;
+}

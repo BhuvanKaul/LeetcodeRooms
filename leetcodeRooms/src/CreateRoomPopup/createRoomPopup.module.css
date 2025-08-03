@@ -1,0 +1,95 @@
+.backdrop{
+    border: burlywood solid;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    z-index: 3;
+    top:0;
+    left: 0;
+    height: 100dvh;
+    width: 100dvw;
+    background: rgba(0, 0, 0, 0.6);
+}
+.popupContainer{
+    display: flex;
+    border: gold solid;
+    flex-direction: column;
+    gap: 15px;
+    position: fixed;
+    z-index: 2;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width:100%;
+    max-width: 450px;
+    background-color: hsl(350, 100%, 78%);
+    padding: 30px 15px 30px 15px;
+    border-radius: 10px;
+}
+.headingContainer{
+    border: black solid;
+}
+.lobbyTypeText{
+    margin-bottom: 10px;
+}
+
+.publicContainer, .privateContainer{
+    display: flex;
+    gap: 5px;
+    border: gray solid;
+    align-items: center;
+    padding: 5px;
+}
+.publicContainer{
+    margin-bottom: 10px;
+}
+.publicText, .privateText{
+    display: flex;
+    flex-direction: column;
+}
+
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.passwordContainer{
+    border: pink solid;
+    opacity: 0;
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+.passwordInput{
+    margin-top: 10px;
+    width: 100%;
+    height: 2rem;
+    font-size: 1rem;
+}
+
+.buttonContainer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: blueviolet solid;
+    gap:30px;
+}
+
+.cancelButtonContainer, .createButtonContainer{
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+}
+
+.buttonContainer button{
+    padding: 5px;
+    font-size: 1.2rem;
+    width: 100%;
+    max-width: 200px;
+}

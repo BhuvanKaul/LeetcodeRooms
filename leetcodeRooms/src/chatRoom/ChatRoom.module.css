@@ -1,0 +1,22 @@
+.chatContainer{
+    min-width: 400px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.messages{
+    flex: 1;
+    border: yellow solid;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 5px;
+    overflow-y: auto;
+}
+.messages div{
+    border-radius: 5px;
+    background-color:  hsl(216, 20%, 95%);
+    padding: 5px;
+    border-radius: 5px;
+}

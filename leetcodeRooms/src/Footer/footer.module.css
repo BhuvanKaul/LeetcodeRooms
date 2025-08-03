@@ -1,0 +1,81 @@
+a{
+    color:inherit;
+}
+a:visited{
+    color:inherit;
+}
+.footerContainer{
+    border: black solid;
+    display: flex;
+    gap:10px;
+}
+
+.aboutLeetRoomsContainer{
+    display: flex;
+    flex-direction: column;
+    flex:1;
+    border:blue solid;
+}
+.aboutLeetRoomsContainer p {
+    font-size: 1rem;
+}
+.aboutLeetRoomsHeading{
+    display: flex;
+    border: orange solid;
+}
+.aboutLeetRoomsHeading h2{
+    font-size: 1.5rem;
+}
+.aboutMeContactMeContainer{
+    display: flex;
+    flex-direction: column;
+    border: blue solid;
+    flex:1;
+}
+.aboutMeContainer{
+    border: black solid;
+    flex: 1;
+}
+.aboutMeContainer p{
+    font-size: 1rem;
+}
+.aboutMeContainer h3{
+    font-size: 1.1rem;
+}
+
+.contactMeContainer{
+    display: flex;
+    border: red solid;
+    flex: 1;
+    gap:1.5rem;
+}
+.contactMeText{
+    display: flex;
+    font-size: 1.1rem;
+    font-weight: bold;
+    justify-content: center;
+    align-items: center;
+    border: yellowgreen solid;
+}
+.linkedinLogo, .gmailLogo, .githubLogo{
+    height: 100%;
+    width: 2rem;
+}
+.linkedinLogo{
+    color: #0a66c2;
+}
+.logoContainer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: pink solid;
+    margin-right: 10px;
+    width: 2.3rem;
+    height: 2.3rem;
+}
+
+@media screen and (max-width:650px){
+    .footerContainer{
+        flex-direction: column;
+    }
+}

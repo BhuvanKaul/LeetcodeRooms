@@ -1,0 +1,17 @@
+node_modules/
+leetcodeRooms/node_modules/
+
+dist/
+build/
+vite-cache/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+.env
+.env.*
+
+.vscode/
+.DS_Store
+Thumbs.db
