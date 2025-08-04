@@ -1,0 +1,23 @@
+.participantsContainer{
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    border: pink solid; 
+}
+.participantsHeading{
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.5rem;
+}
+.participantsName{
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.participantsName div{
+    padding:0.5rem;
+    background-color: hsl(216, 20%, 95%);
+    border-radius: 0.5rem;
+    min-width: 150px;
+}

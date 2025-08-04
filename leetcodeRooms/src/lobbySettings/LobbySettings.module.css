@@ -1,0 +1,156 @@
+.settingsContainer{
+    flex: 1;
+    border: black solid;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+.settingsHeading{
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+.topicsList{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+.notSelectedTopic{
+    padding: 5px 8px 5px 8px;
+    border-radius: 20px;
+    border: hsl(217 20% 89%) solid;
+    font-size: 0.85rem;
+    border-width: 2px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+.selectedTopic{
+    padding: 5px 8px 5px 8px;
+    border-radius: 20px;
+    color :white;
+    background-color: hsl(217, 91%, 35%);
+    border : hsl(217, 91%, 35%) solid;
+    border-width: 2px;
+    font-size: 0.85rem;
+    transition: transform 0.2s ease;
+    cursor: pointer;
+}
+.notSelectedTopic:hover{
+    transform: scale(1.075);
+    background-color: #e8eaf6;
+}
+.selectedTopic:hover{
+    transform: scale(1.075);
+    opacity: 0.8;
+}
+.noTopics{
+    padding: 5px 8px 5px 8px;
+    border-radius: 20px;
+    border: hsl(217 20% 89%) solid;
+    font-size: 0.85rem;
+    border-width: 2px;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+.topicTextRandomButtonContainer{
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+.topicTextRandomButtonContainer p{  
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+.randomOff{
+    padding: 0.3rem;
+    border:hsl(217 20% 89%) solid;
+    border-radius: 5px;
+    border-width: 2px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+.randomOff:hover{
+    transform: scale(1.075);
+}
+.randomOn{
+    padding: 0.3rem;
+    border:hsl(217, 91%, 35%) solid;
+    border-radius: 5px;
+    border-width: 2px;
+    cursor: pointer;
+    background-color: hsl(217, 91%, 35%);
+    color: white;
+    transition: transform 0.2s ease;
+}
+.randomOn:hover{
+    transform: scale(1.075);
+}
+.randomButtonContent{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    font-size: 1rem;
+}
+.randomIcon{
+    width: 0.8rem;
+    height: 0.8rem;
+}
+.chosenTopics{
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+    color: hsl(0, 0%, 20%);
+}
+.lobbyOptionsContainer{
+    flex: 1;
+    display: flex;
+    margin-top: 0.8rem;
+    gap: 2rem;
+}
+.numberOfQuestions{
+    flex: 1;
+    font-size: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+.numberOfQuestions select{
+    width: 100%;
+    max-height: 35px;
+    flex: 1;
+    font-size: 0.85rem;
+    border-radius: 5px;
+    background-color: hsl(216, 20%, 95%);
+}
+.timeLimit{
+    flex: 1;
+    font-size: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+.timeLimit select{
+    width: 100%;
+    max-height: 35px;
+    flex: 1;
+    font-size: 0.85rem;
+    border-radius: 5px;
+    background-color: hsl(216, 20%, 95%);
+}
+.difficulty{
+    flex: 1;
+    font-size: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+.difficulty select{
+    width: 100%;
+    max-height: 35px;
+    flex: 1;
+    font-size: 0.85rem;
+    border-radius: 5px;
+    background-color: hsl(216, 20%, 95%);
+}

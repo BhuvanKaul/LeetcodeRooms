@@ -9,7 +9,7 @@ function ChatRoom() {
     const socketRef = useRef(null);
     const lobbyId = useContext(lobbyIdContext);
     const userId = useContext(userIdContext);
-    const setParticipants = useContext(participantsContext);
+    const {participants, setParticipants} = useContext(participantsContext);
 
     useEffect(() => {
         const socket = io('http://192.168.29.53:3000');
