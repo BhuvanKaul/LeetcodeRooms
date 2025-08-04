@@ -62,13 +62,14 @@ app.post('/lobbies', async (req, res)=> {
 app.post('/lobbies/:lobbyId/join', async(req, res)=>{
     const lobbyId = req.params.lobbyId;
     const userId = req.body.userId;
+    const name = req.body.name;
 
     try{
         const activeLobbies = await getActiveLobbies()
         if (!activeLobbies.has(lobbyId)){
             return res.status(400).json({lobbyExists: false})
         }
-        await addUser(lobbyId, userId);
+        await addUser(lobbyId, userId, name);
         res.status(201).json({lobbyExists: true})
     } catch(err){
         console.log("ERROR IN ADDING USER TO DB: ", err);
@@ -80,22 +81,22 @@ app.post('/lobbies/:lobbyId/join', async(req, res)=>{
 
 io.on("connection", (socket) =>{
     
-    socket.on("joinLobby", async({lobbyId, userId}) => {
+    socket.on("joinLobby", async({lobbyId, userId, name}) => {
         socket.join(lobbyId);
-        socketToUser.set(socket.id, {userId, lobbyId});
-        io.to(lobbyId).emit('userJoined', {userId});
+        socketToUser.set(socket.id, {userId, lobbyId, name});
+        io.to(lobbyId).emit('userJoined', {name});
         const users =  await getUsers(lobbyId);
         io.to(lobbyId).emit('participantsUpdate', {users})
     });
 
-    socket.on("chatMsg", ({lobbyId, userId, message}) =>{
-        io.to(lobbyId).emit("chatMsg", {userId, message});
+    socket.on("chatMsg", ({lobbyId, name, message}) =>{
+        io.to(lobbyId).emit("chatMsg", {name, message});
     });
 
     socket.on("disconnect", async ()=>{
         const info = socketToUser.get(socket.id);
         if (info){
-            const {userId, lobbyId} = info;
+            const {userId, lobbyId, _ } = info;
             await removeUser(userId, lobbyId);
             socketToUser.delete(socket.id);
             const users = await getUsers(lobbyId);

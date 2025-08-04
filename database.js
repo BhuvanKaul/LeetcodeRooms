@@ -29,9 +29,9 @@ async function addNewLobby(lobbyID, ownerId) {
     await db.query(query, [lobbyID, ownerId]);
 }
 
-async function addUser(lobbyId, userId){
-    const query = 'insert into lobby_members(lobbyid, userid) values($1, $2) on conflict (lobbyid, userid) do nothing';
-    await db.query(query, [lobbyId, userId]);
+async function addUser(lobbyId, userId, name){
+    const query = 'insert into lobby_members(lobbyid, userid, name) values($1, $2, $3) on conflict (lobbyid, userid) do nothing';
+    await db.query(query, [lobbyId, userId, name]);
 }
 
 async function removeUser(userId, lobbyId) {
@@ -40,11 +40,11 @@ async function removeUser(userId, lobbyId) {
 }
 
 async function getUsers(lobbyId){
-    let query = 'select userid from lobby_members where lobbyid=$1;';
+    let query = 'select name from lobby_members where lobbyid=$1;';
     const res = await db.query(query, [lobbyId]);
     const users = [];
     for(const row of res.rows){
-        users.push(row.userid);
+        users.push(row.name);
     }
     return users;
 }
