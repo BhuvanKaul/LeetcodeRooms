@@ -1,7 +1,15 @@
-import { useRef, useState, useEffect, useContext } from 'react'
+import { useRef, useState, useEffect, useContext, use } from 'react'
 import { io } from 'socket.io-client';
 import styles from './ChatRoom.module.css';
-import { participantsContext,userIdContext, lobbyIdContext } from '../Contexts.js';
+import { participantsContext,userIdContext, lobbyIdContext, nameContext } from '../Contexts.js';
+import { Send } from 'lucide-react';
+
+const formatTimeStamp = (date) => {
+    if (!(date instanceof Date) || isNaN(date)) {
+        return '';
+    }
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+};
 
 function ChatRoom() {
     const messageInputRef = useRef(null);
@@ -9,20 +17,30 @@ function ChatRoom() {
     const socketRef = useRef(null);
     const lobbyId = useContext(lobbyIdContext);
     const userId = useContext(userIdContext);
+    const name = useContext(nameContext);
     const {participants, setParticipants} = useContext(participantsContext);
+    const messagesRef = useRef(null);
 
     useEffect(() => {
         const socket = io('http://192.168.29.53:3000');
         socketRef.current = socket;
 
-        socketRef.current.emit('joinLobby', { lobbyId, userId });
+        socketRef.current.emit('joinLobby', { lobbyId, userId, name });
 
-        socketRef.current.on('userJoined', ({ userId }) => {
-            setMessages((prev) => [...prev, `${userId} joined the lobby`]);
+        socketRef.current.on('userJoined', ({ name }) => {
+            setMessages((prev) => [...prev, {   type: 'system',
+                                                name: name,
+                                                timeStamp: new Date()
+
+            }]);
         });
 
-        socketRef.current.on('chatMsg', ({ userId, message }) => {
-            setMessages((prev) => [...prev, `${userId}: ${message}`]);
+        socketRef.current.on('chatMsg', ({ name, message }) => {    
+            setMessages((prev) => [...prev, {   type: 'chat',
+                                                name: name,
+                                                timeStamp: new Date(),
+                                                message: message
+            }]);
         });
 
         socketRef.current.on('participantsUpdate', ({users})=>{
@@ -34,24 +52,67 @@ function ChatRoom() {
         };
     }, []);
 
+    useEffect(() => {
+        if (messagesRef.current) {
+            const container = messagesRef.current;
+            container.scrollTop = container.scrollHeight;
+        }
+    }, [messages]);
+
     const sendMessage = () => {
         const message = messageInputRef.current.value.trim();
         if (message === '') return;
-        socketRef.current.emit('chatMsg', { lobbyId, userId, message });
+        socketRef.current.emit('chatMsg', { lobbyId, name, message });
         messageInputRef.current.value = '';
     };
 
+    const handleKeyDown = (event) => {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    useEffect(()=>{
+        console.log(messages);
+    }, [messages]);
+
     return (
         <div className={styles.chatContainer}> 
-            <div className={styles.messages}>
-                {messages.map((msg, index) => (
-                <div key={index}>{msg}</div>
-                ))}
+            <div className={styles.messages} ref={messagesRef}>
+                {messages.map((msg, index) => {
+                    if (msg.type === 'system'){
+                        return (
+                            <div key={index} className={styles.systemMessage}>
+                                <strong>{msg.name}</strong> joined the lobby.
+                            </div>
+                        );
+                    }
+
+                    return(
+                        <div key={index} className={styles.messageEntry}>
+                            <div className={styles.messageHeader}>
+                                <span className={styles.senderName}>
+                                    {msg.name === name ? 'You' : msg.name}
+                                </span>
+                                <span className={styles.timeStamp}>
+                                    {formatTimeStamp(msg.timeStamp)}
+                                </span>
+                            </div>
+                            <div className={styles.messageBubble}>
+                                {msg.message}
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
              
             <div className={styles.sendMessageContainer}>
-                <input type="text" ref={messageInputRef} placeholder="Enter Message" />
-                <button onClick={sendMessage}>Send</button>
+                <input type="text" ref={messageInputRef} placeholder="Enter Message" onKeyDown={handleKeyDown}/>
+                <button onClick={sendMessage}>
+                    <div className={styles.sendIconContainer}>
+                        <Send className={styles.sendIcon}/>
+                    </div>
+                </button>
             </div>
         </div>
     )

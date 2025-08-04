@@ -7,12 +7,19 @@ function JoinRoomPopup (props){
     const joinPopupRef = useRef(null);
     const lobbyIdInputRef = useRef(null);
     const navigate = useNavigate();
+    const nameRef = useRef(null);
 
     const handleCancelButton = ()=>{
         setShowPopup(false);
     }
 
     const handleJoinLobby = ()=>{
+        const name = nameRef.current.value.trim();
+        if (name === ''){
+            console.log('nuh uh');
+            return
+        }
+        localStorage.setItem('name', name);
         const lobbyId = lobbyIdInputRef.current.value;
         navigate(`/lobbies/${lobbyId}`);
     }
@@ -38,6 +45,11 @@ function JoinRoomPopup (props){
 
                 <div className={styles.headingContainer}>
                     <h3>Join Lobby</h3>
+                </div>
+
+                <div className={styles.nameContainer}>
+                    <h4>Enter Your Name</h4>
+                    <input type="text" placeholder='Enter Name' ref={nameRef}/>
                 </div>
 
                 <div className={styles.inputContainer}>

@@ -9,6 +9,7 @@ function CreateRoomPopup(props){
     const [showPopup, setShowPopup] = [props.showPopup, props.setShowPopup];
     const [lobbyType, setLobbyType] = useState('public');
     const popupContainerRef = useRef(null);
+    const nameRef = useRef(null);
 
     const handleCancelButton = () => {
         setShowPopup(false);
@@ -39,6 +40,13 @@ function CreateRoomPopup(props){
             userId = uuidv4();
             localStorage.setItem('userId', userId);
         }
+
+        const name = nameRef.current.value.trim();
+        if (name === ''){
+            console.log('nuh uh');
+            return;
+        }
+        localStorage.setItem('name', name);
 
         try{
             const response = await fetch('http://192.168.29.53:3000/lobbies', {
@@ -71,6 +79,11 @@ function CreateRoomPopup(props){
                     <h3>
                         Create New Lobby
                     </h3>
+                </div>
+
+                <div className={styles.nameContainer}>
+                    <h4>Enter Your Name</h4>
+                    <input type="text" placeholder='Enter Name' ref={nameRef}/>
                 </div>
 
                 <div className={styles.lobbyTypeContainer}>

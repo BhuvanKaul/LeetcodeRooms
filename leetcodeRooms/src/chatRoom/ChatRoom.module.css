@@ -1,22 +1,105 @@
-.chatContainer{
+.chatContainer {
     min-width: 400px;
     display: flex;
     flex-direction: column;
     height: 100%;
+    background-color: white;
 }
-
-.messages{
+.messages {
     flex: 1;
-    border: yellow solid;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 5px;
+    gap: 1rem; 
+    padding: 15px;
     overflow-y: auto;
 }
-.messages div{
-    border-radius: 5px;
-    background-color:  hsl(216, 20%, 95%);
+
+
+.messageEntry {
+    display: flex;
+    flex-direction: column;
+}
+
+
+.messageHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.senderName {
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.timeStamp {
+    font-size: 0.75rem;
+    color: #888;
+}
+
+
+.messageBubble {
+    background-color: hsl(216, 20%, 95%);
+    padding: 10px 12px;
+    border-radius: 12px;
+    max-width: 80%;
+    width: fit-content; 
+    word-wrap: break-word; 
+}
+
+.systemMessage {
+    color: #888;
+    font-size: 0.85rem;
+    text-align: center;
+    font-style: italic;
+    padding: 5px 0;
+}
+
+
+.sendMessageContainer {
+    height: 60px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-top: 1px solid #eee;
+}
+
+.sendMessageContainer input {
+    height: 100%;
+    font-size: 1rem;
+    flex: 1;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 0 10px;
+}
+.sendMessageContainer input:focus{
+    outline: none;
+}
+
+.sendMessageContainer button {
     padding: 5px;
-    border-radius: 5px;
+    height: 100%;
+    width: 48px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.sendMessageContainer button:hover{
+    background-color: #0056b3;
+}
+
+.sendIconContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sendIcon {
+    height: 1.2rem;
 }
