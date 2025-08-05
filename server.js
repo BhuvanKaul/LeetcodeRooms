@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers} from './database.js';
+import {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner} from './database.js';
 import { makeLobbyID } from './backend_logic.js';
 import dotenv from 'dotenv';
 import http from 'http';
@@ -74,6 +74,19 @@ app.post('/lobbies/:lobbyId/join', async(req, res)=>{
     } catch(err){
         console.log("ERROR IN ADDING USER TO DB: ", err);
         res.status(503).json({lobbyExists: true});
+    }
+})
+
+app.get('/lobbies/:lobbyId/owner', async(req, res)=>{
+    const lobbyId = req.params.lobbyId;
+    try{
+        const ownerId = await getOwner(lobbyId);
+        if (ownerId.length === 0){
+            res.status(400).json({ message: `Lobby with ID ${lobbyId} not found.` });
+        }
+        res.status(200).json({ownerId: ownerId[0].ownerid})
+    } catch(err){
+        res.status(503).json({ message: 'Service unavailable or internal server error.' });
     }
 })
 

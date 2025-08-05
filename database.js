@@ -49,4 +49,10 @@ async function getUsers(lobbyId){
     return users;
 }
 
-export {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers};
+async function getOwner(lobbyId) {
+    let query = 'select ownerid from lobby where lobbyid = $1;';
+    const res = await db.query(query, [lobbyId]);
+    return res.rows;
+}
+
+export {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner};
