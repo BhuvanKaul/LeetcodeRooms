@@ -1,8 +1,8 @@
 import LobbyHeader from "../lobbyHeader/lobbyHeader";
 import styles from './lobby.module.css';
 import ChatRoom from "../chatRoom/ChatRoom";
-import { useState } from "react";
-import { participantsContext, chosenTopicsContext, randomTopicContext } from "../Contexts.js";
+import { useState, useContext, useMemo } from "react";
+import { participantsContext, chosenTopicsContext, randomTopicContext, ownerIdContext, userIdContext } from "../Contexts.js";
 import Participants from '../Participants/Participants.jsx';
 import LobbySettings from "../lobbySettings/LobbySettings.jsx";
 
@@ -10,6 +10,13 @@ function Lobby() {
     const [participants, setParticipants] = useState([]);
     const [chosenTopics, setChosenTopics] = useState([]);
     const [randomTopic, setRandomTopic] = useState(false);
+    const ownerId = useContext(ownerIdContext);
+    const userId = useContext(userIdContext);
+    const isOwner = ownerId?.trim() === userId?.trim();
+
+    const participantsVal = useMemo(()=> ({ participants, setParticipants }), [participants]);
+    const chosenTopicsVal = useMemo(() => ({ chosenTopics, setChosenTopics }), [chosenTopics]);
+    const randomTopicVal = useMemo(() => ({ randomTopic, setRandomTopic }), [randomTopic]);
     
     return (
         <div>
@@ -18,20 +25,23 @@ function Lobby() {
 
                 <div className={styles.lobbyInfo}>
 
-                    <participantsContext.Provider value={{participants, setParticipants}}>
+                    <participantsContext.Provider value={participantsVal}>
                         <Participants/>
                     </participantsContext.Provider>
 
-                    <chosenTopicsContext.Provider value={{chosenTopics, setChosenTopics}}>
-                    <randomTopicContext.Provider value={{randomTopic, setRandomTopic}}>
-                        <LobbySettings/>
-                    </randomTopicContext.Provider>
-                    </chosenTopicsContext.Provider>
+                    {isOwner && 
+                        <chosenTopicsContext.Provider value={chosenTopicsVal}>
+                        <randomTopicContext.Provider value={randomTopicVal}>
+                            <LobbySettings/>
+                        </randomTopicContext.Provider>
+                        </chosenTopicsContext.Provider>
+                    }
+                    
 
                 </div>
 
                 <div className={styles.chatContainer}>
-                    <participantsContext.Provider value={{participants, setParticipants}}>
+                    <participantsContext.Provider value={participantsVal}>
                         <ChatRoom />
                     </participantsContext.Provider>
                 </div>

@@ -1,6 +1,6 @@
 import styles from './Participants.module.css';
 import {Users} from 'lucide-react';
-import { useContext } from 'react';
+import React, { useContext } from 'react';
 import { participantsContext } from '../Contexts';
 
 function Participants() {
@@ -23,4 +23,4 @@ function Participants() {
     )
 }
 
-export default Participants;
+export default React.memo(Participants);

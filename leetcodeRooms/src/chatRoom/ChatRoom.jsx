@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useContext, use } from 'react'
+import React, { useRef, useState, useEffect, useContext, use } from 'react'
 import { io } from 'socket.io-client';
 import styles from './ChatRoom.module.css';
 import { participantsContext,userIdContext, lobbyIdContext, nameContext } from '../Contexts.js';
@@ -72,10 +72,6 @@ function ChatRoom() {
         }
     }
 
-    useEffect(()=>{
-        console.log(messages);
-    }, [messages]);
-
     return (
         <div className={styles.chatContainer}> 
             <div className={styles.messages} ref={messagesRef}>
@@ -118,4 +114,4 @@ function ChatRoom() {
     )
 }
 
-export default ChatRoom
+export default React.memo(ChatRoom);    

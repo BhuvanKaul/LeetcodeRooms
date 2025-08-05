@@ -1,7 +1,7 @@
 import styles from './LobbySettings.module.css';
 import { Settings, Shuffle } from 'lucide-react';
 import { chosenTopicsContext, randomTopicContext } from '../Contexts';
-import { useContext, useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 
 function LobbySettings() {
     const topics = ["Array", "String", "Hash Table", "Dynamic Programming", "Math", "Sorting", "Greedy", "Depth-First Search", 
@@ -26,10 +26,6 @@ function LobbySettings() {
     const handleRandomChange = ()=>{
         setRandomTopic(!randomTopic);
     }
-
-    useEffect(()=>{
-        console.log(chosenTopics);
-    }, [chosenTopics])
 
     return (
         <div className={styles.settingsContainer}>
@@ -105,4 +101,4 @@ function LobbySettings() {
     )
 }
 
-export default LobbySettings
+export default React.memo(LobbySettings);
