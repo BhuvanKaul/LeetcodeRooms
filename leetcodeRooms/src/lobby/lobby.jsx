@@ -5,6 +5,7 @@ import { useState, useContext, useMemo } from "react";
 import { participantsContext, chosenTopicsContext, randomTopicContext, ownerIdContext, userIdContext } from "../Contexts.js";
 import Participants from '../Participants/Participants.jsx';
 import LobbySettings from "../lobbySettings/LobbySettings.jsx";
+import NotOwner from "../NotOwner/NotOwner.jsx";
 
 function Lobby() {
     const [participants, setParticipants] = useState([]);
@@ -19,7 +20,7 @@ function Lobby() {
     const randomTopicVal = useMemo(() => ({ randomTopic, setRandomTopic }), [randomTopic]);
     
     return (
-        <div>
+        <div className={styles.lobbyContainer}>
             <LobbyHeader/>
             <div className={styles.mainContainer}>
 
@@ -35,6 +36,10 @@ function Lobby() {
                             <LobbySettings/>
                         </randomTopicContext.Provider>
                         </chosenTopicsContext.Provider>
+                    }
+
+                    {!isOwner &&
+                        <NotOwner/>
                     }
                     
 

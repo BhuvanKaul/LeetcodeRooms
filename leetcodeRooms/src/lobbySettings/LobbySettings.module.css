@@ -116,13 +116,14 @@
     flex-direction: column;
     gap: 0.3rem;
 }
-.numberOfQuestions select{
+.numberOfQuestions select,  .timeLimit select, .difficulty select{
     width: 100%;
     max-height: 35px;
     flex: 1;
     font-size: 0.85rem;
     border-radius: 5px;
     background-color: hsl(216, 20%, 95%);
+    min-height: 30px;
 }
 .timeLimit{
     flex: 1;
@@ -131,26 +132,10 @@
     flex-direction: column;
     gap: 0.3rem;
 }
-.timeLimit select{
-    width: 100%;
-    max-height: 35px;
-    flex: 1;
-    font-size: 0.85rem;
-    border-radius: 5px;
-    background-color: hsl(216, 20%, 95%);
-}
 .difficulty{
     flex: 1;
     font-size: 1.1rem;
     display: flex;
     flex-direction: column;
     gap: 0.3rem;
-}
-.difficulty select{
-    width: 100%;
-    max-height: 35px;
-    flex: 1;
-    font-size: 0.85rem;
-    border-radius: 5px;
-    background-color: hsl(216, 20%, 95%);
 }

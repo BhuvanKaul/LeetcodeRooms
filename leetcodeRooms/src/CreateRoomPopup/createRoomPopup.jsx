@@ -6,10 +6,20 @@ import { v4 as uuidv4 } from 'uuid';
 
 function CreateRoomPopup(props){
     const navigate = useNavigate();
-    const [showPopup, setShowPopup] = [props.showPopup, props.setShowPopup];
+    const [ showPopup, 
+            setShowPopup, 
+            setShowCreateLobbyError] = 
+
+          [ props.showPopup, 
+            props.setShowPopup, 
+            props.setShowCreateLobbyError];
+            
     const [lobbyType, setLobbyType] = useState('public');
     const popupContainerRef = useRef(null);
     const nameRef = useRef(null);
+    const [nameError, setNameError] = useState(false);
+    const [showEmptyNameError, setShowEmptyNameError] = useState(false);
+    const [showLongNameError, setShowLongNameError] = useState(false);
 
     const handleCancelButton = () => {
         setShowPopup(false);
@@ -34,16 +44,31 @@ function CreateRoomPopup(props){
         }
     }, [showPopup])
 
+    useEffect(()=>{
+        const timeOutId = setTimeout(()=>{
+            setNameError(false);
+        },300);
+        
+        return()=> clearTimeout(timeOutId);
+    }, [nameError]);
+
     const handleCreateLobby = async() => {
         let userId = localStorage.getItem('userId');
         if (!userId){
             userId = uuidv4();
             localStorage.setItem('userId', userId);
         }
-
+        
         const name = nameRef.current.value.trim();
         if (name === ''){
-            console.log('nuh uh');
+            setNameError(true);
+            setShowLongNameError(false);
+            setShowEmptyNameError(true);
+            return;
+        } else if(name.length > 20){
+            setNameError(true);
+            setShowLongNameError(true);
+            setShowEmptyNameError(false);
             return;
         }
         localStorage.setItem('name', name);
@@ -68,7 +93,7 @@ function CreateRoomPopup(props){
             navigate(`/lobbies/${createdLobbyId}`);
         
         }catch(err){
-            console.log(err);
+            setShowCreateLobbyError(true);
         }
     };
 
@@ -82,8 +107,21 @@ function CreateRoomPopup(props){
                 </div>
 
                 <div className={styles.nameContainer}>
-                    <h4>Enter Your Name</h4>
-                    <input type="text" placeholder='Enter Name' ref={nameRef}/>
+                    <h4>Your Name</h4>
+                    <input type="text" placeholder='Enter Name' ref={nameRef} className={nameError? styles.shake : ''}/>
+
+                    {showLongNameError && 
+                    <div className={styles.errorMessage}>
+                        Name should be 20 characters or less
+                    </div>
+                    }
+
+                    {showEmptyNameError && 
+                    <div className={styles.errorMessage}>
+                        Name cannot be blank
+                    </div>
+                    }
+                    
                 </div>
 
                 <div className={styles.lobbyTypeContainer}>

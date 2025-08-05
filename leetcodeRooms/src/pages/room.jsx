@@ -37,7 +37,13 @@ function Room() {
 
             } catch (error) {
                 console.error('Failed to initialize lobby:', error.message);
-                navigate('/'); 
+                navigate('/', {
+                    replace: true,
+                    state:{
+                        error: error,
+                        errorType: 'joinLobby'
+                    }
+                }); 
             }
         };
 

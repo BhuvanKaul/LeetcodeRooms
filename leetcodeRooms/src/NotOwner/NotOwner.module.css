@@ -1,0 +1,58 @@
+.NoOwnerContainer{
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.contentContainer{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 500px;
+    align-items: center;
+}
+.clockIcon{
+    width: 48px;
+    height: 48px;
+    color: hsl(217, 90%, 45%);
+}
+.heading{
+    font-size: 2rem;
+    font-weight: bold;
+}
+.text{
+    font-size: 1rem;
+    text-align: center;
+}
+.threeDots{
+    display: flex;
+    gap: 5px;
+}
+.dotOne, .dotTwo, .dotThree{
+    width: 8px;
+    height: 8px;
+    background-color: hsl(217, 90%, 45%);
+    border-radius: 4px;
+    animation: shrink 1.4s ease-in-out infinite both;
+}
+.dotOne{
+    animation-delay: 0s;
+}
+.dotTwo{
+    animation-delay: 0.15s;
+}
+.dotThree{
+    animation-delay: 0.3s;
+}
+
+@keyframes shrink {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

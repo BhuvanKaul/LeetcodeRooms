@@ -50,3 +50,19 @@
     width: 100%;
     margin-top: 5px;
 }
+.errorMessage{
+    margin-top: 2px;
+    font-size: 0.75rem;
+    color: red;
+}
+.shake{
+    border: red solid;
+    animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+}

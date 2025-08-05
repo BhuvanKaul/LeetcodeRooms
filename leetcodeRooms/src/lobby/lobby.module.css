@@ -1,9 +1,12 @@
+.lobbyContainer{
+    min-width: 1200px;
+}
 .mainContainer{
     border: blue solid;
     display: flex;
     padding: 1.5rem 2.5rem 1.5rem 2.5rem;
     background: linear-gradient(180deg, hsl(0 0% 100%), hsl(217 20% 98%));
-    height: calc(100vh - 100px);
+    min-height: calc(100vh - 100px);
     gap: 3rem;
 }
 .lobbyInfo{
