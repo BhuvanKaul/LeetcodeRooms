@@ -1,9 +1,10 @@
-import { Client } from 'pg';
+import { Pool } from 'pg';
+import format from 'pg-format';
 import dotenv from 'dotenv';
 dotenv.config();
 
 
-const db = new Client({
+const pool = new Pool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     port: process.env.DB_PORT,
@@ -11,11 +12,10 @@ const db = new Client({
     database: process.env.DB_DATABASE
 })
 
-db.connect();
 
 async function getActiveLobbies() {
     let query = `select lobbyID from lobby;`;
-    let dbRes = await db.query(query);
+    let dbRes = await pool.query(query);
     dbRes = dbRes.rows;
     let activeIDs = new Set();
     for (const resRow of dbRes){
@@ -26,22 +26,22 @@ async function getActiveLobbies() {
 
 async function addNewLobby(lobbyID, ownerId) {
     let query = 'insert into lobby(lobbyid, ownerid) values($1, $2);';
-    await db.query(query, [lobbyID, ownerId]);
+    await pool.query(query, [lobbyID, ownerId]);
 }
 
 async function addUser(lobbyId, userId, name){
     const query = 'insert into lobby_members(lobbyid, userid, name) values($1, $2, $3) on conflict (lobbyid, userid) do nothing';
-    await db.query(query, [lobbyId, userId, name]);
+    await pool.query(query, [lobbyId, userId, name]);
 }
 
 async function removeUser(userId, lobbyId) {
     let query = 'delete from lobby_members where lobbyid = $1 and userid = $2;';
-    await db.query(query, [lobbyId, userId]);
+    await pool.query(query, [lobbyId, userId]);
 }
 
 async function getUsers(lobbyId){
     let query = 'select name from lobby_members where lobbyid=$1;';
-    const res = await db.query(query, [lobbyId]);
+    const res = await pool.query(query, [lobbyId]);
     const users = [];
     for(const row of res.rows){
         users.push(row.name);
@@ -51,8 +51,35 @@ async function getUsers(lobbyId){
 
 async function getOwner(lobbyId) {
     let query = 'select ownerid from lobby where lobbyid = $1;';
-    const res = await db.query(query, [lobbyId]);
+    const res = await pool.query(query, [lobbyId]);
     return res.rows;
 }
 
-export {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner};
+async function addLobbyDetails(lobbyId, timeLimit){
+    let query = 'update lobby set timelimit = $1, startedtime = now() where lobbyid = $2;';
+    await pool.query(query, [timeLimit, lobbyId]);
+}
+
+async function addQuestions(lobbyId, questions) {
+    console.log(questions);
+    const values = questions.map(link => [lobbyId, link]);
+    const query = format(
+        'insert into questions(lobbyid, questionlink) values %L on conflict (lobbyid, questionlink) do nothing;',
+        values
+    );
+
+    await pool.query(query);
+}
+
+async function getQuestions(lobbyId){
+    const query = 'select questionlink from questions where lobbyid = $1;';
+    const res = await pool.query(query, [lobbyId]);
+    const data = res.rows;
+    const questions = [];
+    for (const row of data){
+        questions.push(row.questionlink);
+    }
+    return questions;
+}
+
+export {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner, addLobbyDetails, addQuestions, getQuestions};

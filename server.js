@@ -1,8 +1,8 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner} from './database.js';
-import { makeLobbyID } from './backend_logic.js';
+import {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner, addLobbyDetails, addQuestions, getQuestions} from './database.js';
+import { makeLobbyID, generateQuestions } from './backend_logic.js';
 import dotenv from 'dotenv';
 import http from 'http';
 import {Server} from 'socket.io';
@@ -75,7 +75,7 @@ app.post('/lobbies/:lobbyId/join', async(req, res)=>{
         console.log("ERROR IN ADDING USER TO DB: ", err);
         res.status(503).json({lobbyExists: true});
     }
-})
+});
 
 app.get('/lobbies/:lobbyId/owner', async(req, res)=>{
     const lobbyId = req.params.lobbyId;
@@ -88,8 +88,39 @@ app.get('/lobbies/:lobbyId/owner', async(req, res)=>{
     } catch(err){
         res.status(503).json({ message: 'Service unavailable or internal server error.' });
     }
-})
+});
 
+ 
+app.post('/lobbies/:lobbyId/info', async(req, res)=>{
+    const lobbyId = req.params.lobbyId;
+    const lobbyTopics = req.body.lobbyTopics;
+    const numberOfQues = req.body.numberOfQues;
+    const timeLimit = req.body.timeLimit;
+    const difficulty = req.body.difficulty;
+
+    const questions = await generateQuestions(lobbyTopics, numberOfQues, difficulty);
+
+    try{
+        await addQuestions(lobbyId, questions);
+        await addLobbyDetails(lobbyId, timeLimit);
+        res.status(201).json({success: true});
+    } catch(err){
+        console.log(err);
+        res.status(503).json({success: false});
+    }
+
+});
+
+app.get('/lobbies/:lobbyId/questions', async(req, res)=>{
+    const lobbyId = req.params.lobbyId;
+    try{
+        const questions = await getQuestions(lobbyId);
+        res.status(200).json({questions: questions});
+    } catch(err){
+        res.status(503).end();
+    }
+});
+ 
 // WebSockets CODE
 
 io.on("connection", (socket) =>{
