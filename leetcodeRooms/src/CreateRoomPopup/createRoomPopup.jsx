@@ -74,7 +74,7 @@ function CreateRoomPopup(props){
         localStorage.setItem('name', name);
 
         try{
-            const response = await fetch('http://192.168.29.53:3000/lobbies', {
+            const response = await fetch('http://192.168.1.55:3000/lobbies', {
                 method: 'post',
                 headers: {
                     'Content-Type': 'application/json'

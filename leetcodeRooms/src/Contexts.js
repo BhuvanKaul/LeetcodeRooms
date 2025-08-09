@@ -7,3 +7,6 @@ export const chosenTopicsContext = createContext();
 export const randomTopicContext = createContext();
 export const nameContext = createContext();
 export const ownerIdContext = createContext();
+export const competitionStarted = createContext();
+export const lobbyDetails = createContext();
+export const questionsContext = createContext();
