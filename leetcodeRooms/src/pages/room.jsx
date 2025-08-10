@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useParams, useNavigate } from 'react-router-dom';
 import Lobby from '../lobby/lobby.jsx';
-import { lobbyIdContext, userIdContext, nameContext, ownerIdContext, competitionStarted, lobbyDetails, questionsContext } from '../Contexts.js';
+import { lobbyIdContext, userIdContext, nameContext, ownerIdContext, competitionStarted, lobbyDetails, questionsContext, sendDataContext, startTimeContext, timeLimitContext } from '../Contexts.js';
 
 
 function Room() {
@@ -13,6 +13,9 @@ function Room() {
     const [ownerId, setOwnerId] = useState(null);
     const [started, setStarted] = useState(false);
     const [questions, setQuestions] = useState([]);
+    const [sendData, setSendData] = useState(false);
+    const startTimeRef = useRef(null);
+    const timeLimitRef = useRef(null);
 
     const lobbyTopics = useRef('random');
     const numberOfQues = useRef(4);
@@ -38,9 +41,17 @@ function Room() {
                 if (!ownerRes.ok) {
                     throw new Error('Joined lobby, but could not fetch owner details.');
                 }
-                
+
                 const ownerData = await ownerRes.json();
                 setOwnerId(ownerData.ownerId);
+
+                const isStarted = await fetch(`http://192.168.1.55:3000/lobbies/${lobbyId}/start`);
+                if (!isStarted.ok){
+                    throw new Error('Could not know if lobby started or not');
+                }
+
+                const startData = await isStarted.json();
+                setStarted(startData.start);
 
             } catch (error) {
                 console.error('Failed to initialize lobby:', error.message);
@@ -58,29 +69,53 @@ function Room() {
 
     }, []);
 
-    useEffect(()=>{
-        if (started){
-            const sendInfo = async()=>{
+
+useEffect(() => {
+    if (sendData) {
+        const startCompetition = async () => {
+            try {
                 await fetch(`http://192.168.1.55:3000/lobbies/${lobbyId}/info`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        lobbyTopics:lobbyTopics.current, 
+                        lobbyTopics: lobbyTopics.current, 
                         numberOfQues: numberOfQues.current,
                         timeLimit: timeLimit.current, 
                         difficulty: difficulty.current
                     })
-                
-                })
-                
-                const res = await fetch(`http://192.168.1.55:3000/lobbies/${lobbyId}/questions`);
-                const data = await res.json();
-                setQuestions(data.questions);
-            }
+                });
 
-            sendInfo();
+                setStarted(true);
+
+            } catch (error) {
+                console.error("Failed to start competition and fetch questions:", error);
+            }
+        };
+
+        startCompetition();
+    }
+}, [sendData]);
+
+
+useEffect(()=>{
+    if (started){
+        const getLobbyInfo = async()=>{
+            const lobbyInfo = await fetch(`http://192.168.1.55:3000/lobbies/${lobbyId}/info`);
+            if (!lobbyInfo.ok) {
+                throw new Error('Could not get Questions after starting competition');
+            }
+            const lobbyData = await lobbyInfo.json();
+            
+            setQuestions(lobbyData.questions);
+            startTimeRef.current = lobbyData.startTime;
+            timeLimitRef.current = lobbyData.timeLimit;
+            
         }
-    }, [started])
+        getLobbyInfo();
+    }
+
+}, [started])
+
 
     return (
         <div>
@@ -91,7 +126,13 @@ function Room() {
             <competitionStarted.Provider value={[started, setStarted]}>
             <lobbyDetails.Provider value={{lobbyTopics, numberOfQues, timeLimit, difficulty}}>
             <questionsContext.Provider value={[questions, setQuestions]}>
+            <sendDataContext.Provider value={[sendData, setSendData]}>
+            <startTimeContext.Provider value={startTimeRef}>
+            <timeLimitContext.Provider value={timeLimitRef}>
                 <Lobby/>
+            </timeLimitContext.Provider>
+            </startTimeContext.Provider>
+            </sendDataContext.Provider>
             </questionsContext.Provider>
             </lobbyDetails.Provider>
             </competitionStarted.Provider>

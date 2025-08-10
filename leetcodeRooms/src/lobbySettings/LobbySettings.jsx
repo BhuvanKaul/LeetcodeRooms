@@ -1,7 +1,7 @@
 import styles from './LobbySettings.module.css';
 import { Settings, Shuffle } from 'lucide-react';
 import { chosenTopicsContext, randomTopicContext, lobbyDetails } from '../Contexts';
-import React, { useContext, useEffect } from 'react';
+import React, { useContext } from 'react';
 
 function LobbySettings() {
     const topics = ["Array", "String", "Hash Table", "Dynamic Programming", "Math", "Sorting", "Greedy", "Depth-First Search", 
@@ -49,6 +49,10 @@ function LobbySettings() {
         difficulty.current = event.target.value;
     };
 
+    const formatTopicAsValue = (topic) => {
+        return topic.toLowerCase().replaceAll(' ', '-');
+    };
+
     return (
         <div className={styles.settingsContainer}>
 
@@ -69,13 +73,17 @@ function LobbySettings() {
             </div>
             
             <div className={styles.topicsList}>
-                {topics.map((topic, index)=>(
-                            <div    key={index}
-                                    onClick={()=>handleTopicClick(topic)}
-                                    className={ randomTopic ? styles.noTopics :
-                                                chosenTopics.includes(topic) ? styles.selectedTopic: styles.notSelectedTopic}>
-                                    {topic}</div>
-                ))}
+                {topics.map((topic, index)=>{
+                    const topicValue = formatTopicAsValue(topic);
+                    return (
+                        <div    key={index}
+                                onClick={()=>handleTopicClick(topicValue)}
+                                className={ randomTopic ? styles.noTopics :
+                                            chosenTopics.includes(topicValue) ? styles.selectedTopic: styles.notSelectedTopic}>
+                                {topic}
+                        </div>
+                    )
+                })}
             </div>
 
             <div className={styles.chosenTopics}>

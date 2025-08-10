@@ -1,0 +1,18 @@
+.mainContainer{
+    display: flex;
+    gap: 0.5rem;
+    flex-direction: column;
+    border: red solid;
+    flex: 1;
+}
+.questionContainer{
+    border: blanchedalmond solid;
+    padding: 10px 5px 10px 5px;
+    display: flex;
+    align-items: center;
+}
+.submitButton{
+    font-size: 1rem;
+    padding: 4px;
+    margin-left: auto;
+}

@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useContext, use } from 'react'
 import { io } from 'socket.io-client';
 import styles from './ChatRoom.module.css';
-import { participantsContext,userIdContext, lobbyIdContext, nameContext } from '../Contexts.js';
+import { participantsContext,userIdContext, lobbyIdContext, nameContext,competitionStarted, ownerIdContext } from '../Contexts.js';
 import { Send } from 'lucide-react';
 
 const formatTimeStamp = (date) => {
@@ -20,6 +20,9 @@ function ChatRoom() {
     const name = useContext(nameContext);
     const {participants, setParticipants} = useContext(participantsContext);
     const messagesRef = useRef(null);
+    const [started, setStarted] = useContext(competitionStarted);
+    const ownerId = useContext(ownerIdContext);
+    const isOwner = ownerId?.trim() === userId?.trim();
 
     useEffect(() => {
         const socket = io('http://192.168.1.55:3000');
@@ -47,10 +50,20 @@ function ChatRoom() {
             setParticipants(users);
         });
 
+        socketRef.current.on('start', ()=>{
+            setStarted(true);
+        })
+
         return () => {
         socketRef.current.disconnect();
         };
     }, []);
+
+    useEffect(()=>{
+        if (started && isOwner){
+            socketRef.current.emit('startMatch', {lobbyId});
+        }
+    }, [started])
 
     useEffect(() => {
         if (messagesRef.current) {
