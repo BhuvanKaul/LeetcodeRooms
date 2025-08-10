@@ -56,12 +56,11 @@ async function getOwner(lobbyId) {
 }
 
 async function addLobbyDetails(lobbyId, timeLimit){
-    let query = 'update lobby set timelimit = $1, startedtime = now() where lobbyid = $2;';
+    let query = 'update lobby set timelimit = $1, starttime = now() where lobbyid = $2;';
     await pool.query(query, [timeLimit, lobbyId]);
 }
 
 async function addQuestions(lobbyId, questions) {
-    console.log(questions);
     const values = questions.map(link => [lobbyId, link]);
     const query = format(
         'insert into questions(lobbyid, questionlink) values %L on conflict (lobbyid, questionlink) do nothing;',
@@ -82,4 +81,29 @@ async function getQuestions(lobbyId){
     return questions;
 }
 
-export {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner, addLobbyDetails, addQuestions, getQuestions};
+async function isStarted(lobbyId){
+    const query = 'select starttime from lobby where lobbyid = $1;';
+    const res = await pool.query(query, [lobbyId]);
+    const data = res.rows[0];
+    if (data.starttime){
+        return true
+    }
+    return false;
+}
+
+async function getStartTime(lobbyId){
+    const query = 'select starttime from lobby where lobbyid = $1;';
+    const res = await pool.query(query, [lobbyId]);
+    const data = res.rows[0];
+    return data.starttime;
+
+}
+
+async function getTimeLimit(lobbyId) {
+    const query = 'select timelimit from lobby where lobbyid = $1;';
+    const res = await pool.query(query, [lobbyId]);
+    const data = res.rows[0];
+    return data.timelimit;
+}
+
+export {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner, addLobbyDetails, addQuestions, getQuestions, isStarted, getStartTime, getTimeLimit};

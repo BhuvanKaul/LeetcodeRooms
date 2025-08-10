@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner, addLobbyDetails, addQuestions, getQuestions} from './database.js';
+import {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner, addLobbyDetails, addQuestions, getQuestions, isStarted, getStartTime, getTimeLimit} from './database.js';
 import { makeLobbyID, generateQuestions } from './backend_logic.js';
 import dotenv from 'dotenv';
 import http from 'http';
@@ -111,15 +111,27 @@ app.post('/lobbies/:lobbyId/info', async(req, res)=>{
 
 });
 
-app.get('/lobbies/:lobbyId/questions', async(req, res)=>{
+app.get('/lobbies/:lobbyId/info', async(req, res)=>{
     const lobbyId = req.params.lobbyId;
     try{
         const questions = await getQuestions(lobbyId);
-        res.status(200).json({questions: questions});
+        const startTime = await getStartTime(lobbyId);
+        const timeLimit = await getTimeLimit(lobbyId);
+        res.status(200).json({questions, startTime, timeLimit});
     } catch(err){
         res.status(503).end();
     }
 });
+
+app.get('/lobbies/:lobbyId/start', async(req, res)=>{
+    const lobbyId = req.params.lobbyId;
+    try{
+        const start = await isStarted(lobbyId);
+        res.status(200).json({start: start});
+    } catch(err) {
+        res.status(503).json({start: null});
+    }
+})
  
 // WebSockets CODE
 
@@ -136,6 +148,10 @@ io.on("connection", (socket) =>{
     socket.on("chatMsg", ({lobbyId, name, message}) =>{
         io.to(lobbyId).emit("chatMsg", {name, message});
     });
+
+    socket.on("startMatch", ({lobbyId})=>{
+        io.to(lobbyId).emit('start');
+    })
 
     socket.on("disconnect", async ()=>{
         const info = socketToUser.get(socket.id);
