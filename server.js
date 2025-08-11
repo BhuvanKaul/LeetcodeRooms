@@ -1,8 +1,10 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner, addLobbyDetails, addQuestions, getQuestions, isStarted, getStartTime, getTimeLimit} from './database.js';
-import { makeLobbyID, generateQuestions } from './backend_logic.js';
+import {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, 
+        getOwner, addLobbyDetails, addQuestions, getQuestions, isStarted, 
+        getStartTime, getTimeLimit, getSolvedQuestions, addSubmittedQuestion} from './database.js';
+import { makeLobbyID, generateQuestions, getLastSubmission } from './backend_logic.js';
 import dotenv from 'dotenv';
 import http from 'http';
 import {Server} from 'socket.io';
@@ -132,6 +134,42 @@ app.get('/lobbies/:lobbyId/start', async(req, res)=>{
         res.status(503).json({start: null});
     }
 })
+
+app.get('/lobbies/:lobbyId/solvedQuestions', async(req, res)=>{
+    const lobbyId = req.params.lobbyId;
+    const userId = req.query.userId;
+    try{
+        const solvedQuestions = await getSolvedQuestions(lobbyId, userId);
+        res.status(200).json({solvedQuestions: solvedQuestions});
+    } catch(err){
+        res.status(503).json({error: 'Could not get questions'});
+    }
+});
+
+app.get('/lastSubmission', async(req, res)=>{
+    const userName = req.query.userName;
+
+    try{
+        const lastQuestion = await getLastSubmission(userName);
+        res.status(200).json({lastQuestion});
+    } catch(err){
+        res.status(400).json({message: 'Bad User Name'})
+    }
+});
+
+app.post('/lobbies/:lobbyId/submit', async(req, res)=>{
+    const lobyId = req.params.lobbyId;
+    const userId = req.body.userId;
+    const question = req.body.question;
+
+    try{
+        await addSubmittedQuestion(lobyId, userId, question);
+        res.status(200).json({submitted: true});
+    } catch(err){
+        res.status(503).json({submitted: false});
+    }
+});
+
  
 // WebSockets CODE
 

@@ -106,4 +106,27 @@ async function getTimeLimit(lobbyId) {
     return data.timelimit;
 }
 
-export {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner, addLobbyDetails, addQuestions, getQuestions, isStarted, getStartTime, getTimeLimit};
+async function getSolvedQuestions(lobbyId, userId) {
+    const query = 'select link from questions_solved where lobbyid=$1 and userid=$2;';
+    const res = await pool.query(query, [lobbyId, userId]);
+    const data = res.rows;
+    const result = [];
+    for(const question of data){
+        result.push(question.link);
+    }
+    return result;
+}
+
+async function addSubmittedQuestion(lobbyId, userId, question){
+    const query = 'insert into questions_solved(lobbyid, userid, link) values($1, $2, $3);';
+    try{
+        await pool.query(query, [lobbyId, userId, question]);
+    } catch (err){
+        throw Error('Bad Credentials');
+    }
+
+}
+
+export {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner, 
+        addLobbyDetails, addQuestions, getQuestions, isStarted, getStartTime, getTimeLimit, getSolvedQuestions,
+        addSubmittedQuestion};

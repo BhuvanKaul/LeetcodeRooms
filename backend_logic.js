@@ -21,7 +21,7 @@ function makeLobbyID(){
 }
 
 const url = "https://leetcode.com/graphql";
-const gqlQuery = `
+const getQuestionsQuery = `
 query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
   problemsetQuestionList: questionList(categorySlug: $categorySlug, limit: $limit, skip: $skip, filters: $filters) {
     total: totalNum
@@ -33,6 +33,15 @@ query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $fi
     }
   }
 }`;
+
+const getLastSubmissionQuery = `
+query 
+recentAcSubmissions($username: String!, $limit: Int!) {
+    recentAcSubmissionList(username: $username, limit: $limit) {   
+            titleSlug    
+        }
+    }`;
+
 
 const headers = {
     "Content-Type": "application/json",
@@ -46,7 +55,7 @@ async function fetchRandomQuestionsFromPool(count, filters) {
     if (count <= 0) return [];
 
     const body = {
-        query: gqlQuery,
+        query: getQuestionsQuery,
         variables:{
             categorySlug: "",
             filters: filters,
@@ -192,4 +201,22 @@ async function generateQuestions(topics, totalQuestions, difficulty) {
     }
 }
 
-export { makeLobbyID, generateQuestions };
+
+async function getLastSubmission(userName){
+    const body = {
+        query: getLastSubmissionQuery,
+        variables:{
+            username: userName,
+            limit: 1
+        }
+    }
+    try{
+        const res = await fetch(url, {method: 'POST', headers: headers, body: JSON.stringify(body)})
+        const data = await res.json()
+        return 'https://leetcode.com/problems/' + data.data.recentAcSubmissionList[0].titleSlug;
+    } catch(err){
+        throw Error('Bad Username');
+    }
+};
+
+export { makeLobbyID, generateQuestions, getLastSubmission };
