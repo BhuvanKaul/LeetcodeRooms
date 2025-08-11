@@ -50,7 +50,7 @@ function Lobby() {
                     </div>
                 }
 
-                {questions &&
+                {started &&
                     <Questions/ >
                 }
 

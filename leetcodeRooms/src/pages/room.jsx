@@ -27,7 +27,7 @@ function Room() {
     useEffect(() => {
         const initializeLobby = async () => {
             try {
-                const joinRes = await fetch(`http://192.168.1.55:3000/lobbies/${lobbyId}/join`, {
+                const joinRes = await fetch(`http://192.168.29.53:3000/lobbies/${lobbyId}/join`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userId, name })
@@ -37,7 +37,7 @@ function Room() {
                     throw new Error('Could not join lobby. It may not exist or is full.');
                 }
 
-                const ownerRes = await fetch(`http://192.168.1.55:3000/lobbies/${lobbyId}/owner`);
+                const ownerRes = await fetch(`http://192.168.29.53:3000/lobbies/${lobbyId}/owner`);
                 if (!ownerRes.ok) {
                     throw new Error('Joined lobby, but could not fetch owner details.');
                 }
@@ -45,7 +45,7 @@ function Room() {
                 const ownerData = await ownerRes.json();
                 setOwnerId(ownerData.ownerId);
 
-                const isStarted = await fetch(`http://192.168.1.55:3000/lobbies/${lobbyId}/start`);
+                const isStarted = await fetch(`http://192.168.29.53:3000/lobbies/${lobbyId}/start`);
                 if (!isStarted.ok){
                     throw new Error('Could not know if lobby started or not');
                 }
@@ -74,7 +74,7 @@ useEffect(() => {
     if (sendData) {
         const startCompetition = async () => {
             try {
-                await fetch(`http://192.168.1.55:3000/lobbies/${lobbyId}/info`, {
+                await fetch(`http://192.168.29.53:3000/lobbies/${lobbyId}/info`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -100,7 +100,7 @@ useEffect(() => {
 useEffect(()=>{
     if (started){
         const getLobbyInfo = async()=>{
-            const lobbyInfo = await fetch(`http://192.168.1.55:3000/lobbies/${lobbyId}/info`);
+            const lobbyInfo = await fetch(`http://192.168.29.53:3000/lobbies/${lobbyId}/info`);
             if (!lobbyInfo.ok) {
                 throw new Error('Could not get Questions after starting competition');
             }

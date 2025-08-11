@@ -5,6 +5,10 @@
     border: red solid;
     flex: 1;
 }
+.guideContainer{
+    position: relative;
+    display: flex;
+}
 .questionContainer{
     border: blanchedalmond solid;
     padding: 10px 5px 10px 5px;
@@ -15,4 +19,64 @@
     font-size: 1rem;
     padding: 4px;
     margin-left: auto;
+}
+.submitGuide{
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    border: blue solid;
+    cursor: pointer;
+    align-self: flex-start;
+}
+.questionMarkIcon{
+    width: 1rem;
+    height: 1rem;
+}
+.submitHelper{
+    display: none;
+    background-color: hsl(216, 20%, 95%);;
+    text-align: center;
+    padding: 0.8rem;
+
+    position: absolute;
+    top: 100%;            
+    left: 0;              
+    z-index: 10;          
+    width: 700px;   
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    font-size: 0.9rem;
+}
+.submitHelper i{
+    font-size: 0.85rem;
+    color: hsl(0, 61%, 48%);
+}
+.submitGuide:hover + .submitHelper {
+    display: block;
+}
+.image{
+    margin-top: 1rem;
+    width: 650px;
+    height: 300px;
+}
+.userNameContainer{
+    display: flex;
+    gap : 10px;
+    border: yellow solid;
+    padding: 10px 5px;
+    justify-content: center;
+    font-weight: bold;
+    align-items: center;
+    font-size: 1.1rem;
+}
+.userNameContainer input{
+    font-size: 1rem;
+    padding: 5px;
+}
+.submittedIcon{
+    margin-left: auto;
+    color: green;
+    height: 30px;
+    width: 30px;
 }

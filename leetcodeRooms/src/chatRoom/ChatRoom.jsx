@@ -25,7 +25,7 @@ function ChatRoom() {
     const isOwner = ownerId?.trim() === userId?.trim();
 
     useEffect(() => {
-        const socket = io('http://192.168.1.55:3000');
+        const socket = io('http://192.168.29.53:3000');
         socketRef.current = socket;
 
         socketRef.current.emit('joinLobby', { lobbyId, userId, name });
