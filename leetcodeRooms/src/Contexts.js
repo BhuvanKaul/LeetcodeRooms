@@ -13,3 +13,5 @@ export const questionsContext = createContext();
 export const sendDataContext = createContext();
 export const startTimeContext = createContext();
 export const timeLimitContext = createContext();
+export const leaderboardContext = createContext();
+export const socketContext = createContext();

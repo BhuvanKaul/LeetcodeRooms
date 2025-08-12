@@ -1,7 +1,6 @@
-import React, { useRef, useState, useEffect, useContext, use } from 'react'
-import { io } from 'socket.io-client';
+import React, { useRef, useState, useEffect, useContext } from 'react';
 import styles from './ChatRoom.module.css';
-import { participantsContext,userIdContext, lobbyIdContext, nameContext,competitionStarted, ownerIdContext } from '../Contexts.js';
+import { nameContext } from '../Contexts.js'; 
 import { Send } from 'lucide-react';
 
 const formatTimeStamp = (date) => {
@@ -11,59 +10,10 @@ const formatTimeStamp = (date) => {
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 };
 
-function ChatRoom() {
+function ChatRoom({ messages, sendMessage }) { 
     const messageInputRef = useRef(null);
-    const [messages, setMessages] = useState([]);
-    const socketRef = useRef(null);
-    const lobbyId = useContext(lobbyIdContext);
-    const userId = useContext(userIdContext);
     const name = useContext(nameContext);
-    const {participants, setParticipants} = useContext(participantsContext);
     const messagesRef = useRef(null);
-    const [started, setStarted] = useContext(competitionStarted);
-    const ownerId = useContext(ownerIdContext);
-    const isOwner = ownerId?.trim() === userId?.trim();
-
-    useEffect(() => {
-        const socket = io('http://192.168.29.53:3000');
-        socketRef.current = socket;
-
-        socketRef.current.emit('joinLobby', { lobbyId, userId, name });
-
-        socketRef.current.on('userJoined', ({ name }) => {
-            setMessages((prev) => [...prev, {   type: 'system',
-                                                name: name,
-                                                timeStamp: new Date()
-
-            }]);
-        });
-
-        socketRef.current.on('chatMsg', ({ name, message }) => {    
-            setMessages((prev) => [...prev, {   type: 'chat',
-                                                name: name,
-                                                timeStamp: new Date(),
-                                                message: message
-            }]);
-        });
-
-        socketRef.current.on('participantsUpdate', ({users})=>{
-            setParticipants(users);
-        });
-
-        socketRef.current.on('start', ()=>{
-            setStarted(true);
-        })
-
-        return () => {
-        socketRef.current.disconnect();
-        };
-    }, []);
-
-    useEffect(()=>{
-        if (started && isOwner){
-            socketRef.current.emit('startMatch', {lobbyId});
-        }
-    }, [started])
 
     useEffect(() => {
         if (messagesRef.current) {
@@ -72,16 +22,15 @@ function ChatRoom() {
         }
     }, [messages]);
 
-    const sendMessage = () => {
-        const message = messageInputRef.current.value.trim();
-        if (message === '') return;
-        socketRef.current.emit('chatMsg', { lobbyId, name, message });
+    const handleSend = () => {
+        const message = messageInputRef.current.value;
+        sendMessage(message); 
         messageInputRef.current.value = '';
     };
 
     const handleKeyDown = (event) => {
         if (event.key === 'Enter') {
-            sendMessage();
+            handleSend();
         }
     }
 
@@ -114,10 +63,10 @@ function ChatRoom() {
                     );
                 })}
             </div>
-             
+            
             <div className={styles.sendMessageContainer}>
                 <input type="text" ref={messageInputRef} placeholder="Enter Message" onKeyDown={handleKeyDown}/>
-                <button onClick={sendMessage}>
+                <button onClick={handleSend}>
                     <div className={styles.sendIconContainer}>
                         <Send className={styles.sendIcon}/>
                     </div>
@@ -127,4 +76,4 @@ function ChatRoom() {
     )
 }
 
-export default React.memo(ChatRoom);    
+export default React.memo(ChatRoom);

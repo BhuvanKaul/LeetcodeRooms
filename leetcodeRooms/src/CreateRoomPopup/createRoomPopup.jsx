@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 
 function CreateRoomPopup(props){
+    const serverIP = import.meta.env.VITE_SERVER_IP;
     const navigate = useNavigate();
     const [ showPopup, 
             setShowPopup, 
@@ -74,7 +75,7 @@ function CreateRoomPopup(props){
         localStorage.setItem('name', name);
 
         try{
-            const response = await fetch('http://192.168.29.53:3000/lobbies', {
+            const response = await fetch(`${serverIP}/lobbies`, {
                 method: 'post',
                 headers: {
                     'Content-Type': 'application/json'

@@ -2,8 +2,7 @@
     min-width: 400px;
     display: flex;
     flex-direction: column;
-    height: 100%;
-    background-color: white;
+    height: calc(100vh - 160px);
 }
 .messages {
     flex: 1;
@@ -19,7 +18,6 @@
     display: flex;
     flex-direction: column;
 }
-
 
 .messageHeader {
     display: flex;
