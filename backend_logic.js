@@ -192,15 +192,17 @@ async function generateQuestions(topics, totalQuestions, difficulty) {
             questions = [...finalEasy, ...finalMedium, ...finalHard];
             
         }
-        
-        return questions.map(q => `https://leetcode.com/problems/${q.titleSlug}`);
+
+        return questions.map(q => ({
+            link: `https://leetcode.com/problems/${q.titleSlug}`,
+            difficulty: q.difficulty 
+        }));
 
     } catch (err) {
         console.error("An unexpected error occurred:", err);
         return [`An error occurred: ${err.message}`];
     }
 }
-
 
 async function getLastSubmission(userName){
     const body = {

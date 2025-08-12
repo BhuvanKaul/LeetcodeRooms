@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, 
         getOwner, addLobbyDetails, addQuestions, getQuestions, isStarted, 
-        getStartTime, getTimeLimit, getSolvedQuestions, addSubmittedQuestion} from './database.js';
+        getStartTime, getTimeLimit, getSolvedQuestions, addSubmittedQuestion, getLeaderboard} from './database.js';
 import { makeLobbyID, generateQuestions, getLastSubmission } from './backend_logic.js';
 import dotenv from 'dotenv';
 import http from 'http';
@@ -158,19 +158,28 @@ app.get('/lastSubmission', async(req, res)=>{
 });
 
 app.post('/lobbies/:lobbyId/submit', async(req, res)=>{
-    const lobyId = req.params.lobbyId;
+    const lobbyId = req.params.lobbyId;
     const userId = req.body.userId;
     const question = req.body.question;
 
     try{
-        await addSubmittedQuestion(lobyId, userId, question);
+        await addSubmittedQuestion(lobbyId, userId, question);
         res.status(200).json({submitted: true});
     } catch(err){
         res.status(503).json({submitted: false});
     }
 });
 
- 
+app.get('/lobbies/:lobbyId/leaderboard', async(req, res)=>{
+    const lobbyId = req.params.lobbyId;
+    try{
+        const leaderboard = await getLeaderboard(lobbyId);
+        res.status(200).json({leaderboard});
+    } catch(err){
+        res.status(503).end();
+    }
+});
+
 // WebSockets CODE
 
 io.on("connection", (socket) =>{
@@ -201,6 +210,11 @@ io.on("connection", (socket) =>{
             io.to(lobbyId).emit('participantsUpdate', {users})
         }
     });
+
+    socket.on('new-submission', ({lobbyId})=>{
+        io.to(lobbyId).emit('leaderboard-updated');
+    })
+
 })
 
 

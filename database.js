@@ -61,14 +61,24 @@ async function addLobbyDetails(lobbyId, timeLimit){
 }
 
 async function addQuestions(lobbyId, questions) {
-    const values = questions.map(link => [lobbyId, link]);
+    const pointsMap = {
+        'Easy': 3,
+        'Medium': 5,
+        'Hard': 6
+    };
+
+    const values = questions.map(q => {
+        const points = pointsMap[q.difficulty] || 0;
+        return [lobbyId, q.link, points];
+    });
+
     const query = format(
-        'insert into questions(lobbyid, questionlink) values %L on conflict (lobbyid, questionlink) do nothing;',
+        'INSERT INTO questions(lobbyid, questionlink, points) VALUES %L ON CONFLICT (lobbyid, questionlink) DO NOTHING;',
         values
     );
 
     await pool.query(query);
-}
+};
 
 async function getQuestions(lobbyId){
     const query = 'select questionlink from questions where lobbyid = $1;';
@@ -124,9 +134,33 @@ async function addSubmittedQuestion(lobbyId, userId, question){
     } catch (err){
         throw Error('Bad Credentials');
     }
+};
 
-}
+async function getLeaderboard(lobbyId){
+    const query = `
+        SELECT
+            qs.userid,
+            SUM(q.points) AS total_points,
+            MAX(qs.submitTime) AS last_submission_time
+        FROM
+            questions_solved AS qs,
+            questions AS q
+        WHERE
+            qs.lobbyid = q.lobbyid
+            AND qs.link = q.questionlink
+            AND qs.lobbyid = $1
+        GROUP BY
+            qs.userid
+        ORDER BY
+            total_points DESC,
+            last_submission_time ASC;
+    `
+
+    const res = await pool.query(query, [lobbyId]);
+    return res.rows;
+
+};
 
 export {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner, 
         addLobbyDetails, addQuestions, getQuestions, isStarted, getStartTime, getTimeLimit, getSolvedQuestions,
-        addSubmittedQuestion};
+        addSubmittedQuestion, getLeaderboard};
