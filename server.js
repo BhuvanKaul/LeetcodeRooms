@@ -3,8 +3,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, 
         getOwner, addLobbyDetails, addQuestions, getQuestions, isStarted, 
-        getStartTime, getTimeLimit, getSolvedQuestions, addSubmittedQuestion, getLeaderboard} from './database.js';
-import { makeLobbyID, generateQuestions, getLastSubmission } from './backend_logic.js';
+        getStartTime, getTimeLimit, getSolvedQuestions, addSubmittedQuestion, getLeaderboard, generateQuestions} from './database.js';
+import { makeLobbyID, getLastSubmission } from './backend_logic.js';
 import dotenv from 'dotenv';
 import http from 'http';
 import {Server} from 'socket.io';
@@ -101,7 +101,6 @@ app.post('/lobbies/:lobbyId/info', async(req, res)=>{
     const difficulty = req.body.difficulty;
 
     const questions = await generateQuestions(lobbyTopics, numberOfQues, difficulty);
-
     try{
         await addQuestions(lobbyId, questions);
         await addLobbyDetails(lobbyId, timeLimit);
@@ -171,11 +170,13 @@ app.post('/lobbies/:lobbyId/submit', async(req, res)=>{
 });
 
 app.get('/lobbies/:lobbyId/leaderboard', async(req, res)=>{
+    console.log('got request');
     const lobbyId = req.params.lobbyId;
     try{
         const leaderboard = await getLeaderboard(lobbyId);
         res.status(200).json({leaderboard});
     } catch(err){
+        console.log(err);
         res.status(503).end();
     }
 });

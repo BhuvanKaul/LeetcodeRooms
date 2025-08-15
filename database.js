@@ -84,6 +84,15 @@ async function getQuestions(lobbyId){
     const query = 'select questionlink from questions where lobbyid = $1;';
     const res = await pool.query(query, [lobbyId]);
     const data = res.rows;
+    const difficultyOrder = {
+        'Easy': 0,
+        'Medium': 1,
+        'Hard': 2
+    };
+    data.sort((a, b) => {
+        return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
+    });
+
     const questions = [];
     for (const row of data){
         questions.push(row.questionlink);
@@ -139,18 +148,19 @@ async function addSubmittedQuestion(lobbyId, userId, question){
 async function getLeaderboard(lobbyId){
     const query = `
         SELECT
-            qs.userid,
+            lm.name,
             SUM(q.points) AS total_points,
             MAX(qs.submitTime) AS last_submission_time
         FROM
-            questions_solved AS qs,
-            questions AS q
+            questions_solved AS qs
+        JOIN 
+            questions AS q ON qs.lobbyid = q.lobbyid AND qs.link = q.questionlink
+        JOIN 
+            lobby_members AS lm ON qs.userid = lm.userid AND qs.lobbyid = lm.lobbyid
         WHERE
-            qs.lobbyid = q.lobbyid
-            AND qs.link = q.questionlink
-            AND qs.lobbyid = $1
+            qs.lobbyid = $1
         GROUP BY
-            qs.userid
+            lm.userid, lm.name
         ORDER BY
             total_points DESC,
             last_submission_time ASC;
@@ -158,9 +168,146 @@ async function getLeaderboard(lobbyId){
 
     const res = await pool.query(query, [lobbyId]);
     return res.rows;
-
 };
+
+async function fetchRandomQuestionsFromDB(topics, difficulty){
+    if (topics === 'random'){
+        const query = 'select title_slug, difficulty from leetcode_questions where difficulty = $1;';
+        try{
+            const res = await pool.query(query, [difficulty]);
+            res.rows.sort(()=> 0.5 - Math.random());
+            return res.rows;
+        } catch(err){
+            throw(err);
+        }
+    } 
+
+    const query = 'select title_slug, difficulty from leetcode_questions where difficulty = $1 and topic_tags && $2;';
+    try{
+        const res = await pool.query(query, [difficulty, topics]);
+        res.rows.sort(()=> 0.5 - Math.random());
+        return res.rows;
+    } catch(err){
+        throw(err);
+    }
+};
+
+async function generateQuestions(topics, totalQuestions, difficulty){
+    let questions = [];
+
+    if (difficulty === 'Easy'){
+        const easyQs = await fetchRandomQuestionsFromDB(topics, "Easy");
+        let needed = totalQuestions - easyQs.length;
+
+        let mediumQs = [];
+        if (needed > 0){
+            mediumQs = await fetchRandomQuestionsFromDB(topics, "Medium");
+            needed -= mediumQs.length;
+        }
+
+        let hardQs = [];
+        if (needed > 0){
+            hardQs = await fetchRandomQuestionsFromDB(topics, "Hard");
+        }
+        questions = [...easyQs, ...mediumQs, ...hardQs];
+
+    } else if (difficulty === "Medium"){
+
+        const mediumQs = await fetchRandomQuestionsFromDB(topics, "Medium");
+        let needed = totalQuestions - mediumQs.length;
+
+        let easyQs = [];
+        if(needed > 0){
+            easyQs = await fetchRandomQuestionsFromDB(topics, "Easy")
+            needed -= mediumQs.length;
+        }
+
+        let hardQs = [];
+        if(needed > 0){
+            hardQs = await fetchRandomQuestionsFromDB(topics, "Hard");
+        }
+
+        questions = [...mediumQs, ...easyQs, ...hardQs];
+    
+    } else if(difficulty === "Hard"){
+        
+        const hardQs = await fetchRandomQuestionsFromDB(topics, "Hard");
+        let needed = totalQuestions - hardQs.length;
+
+        let mediumQs = [];
+        if (needed > 0){
+            mediumQs = await fetchRandomQuestionsFromDB(topics, "Medium");
+            needed -= mediumQs.length;
+        }
+        
+        let easyQs = [];
+        if(needed > 0){
+            easyQs = await fetchRandomQuestionsFromDB(topics, "Easy")
+            needed -= mediumQs.length;
+        }
+
+        questions = [...hardQs, ...mediumQs, ...easyQs];
+    
+    } else if (difficulty === "Medium/Hard"){
+        const mediumQs = await fetchRandomQuestionsFromDB(topics, "Medium");
+        const hardQs = await fetchRandomQuestionsFromDB(topics, "Hard");
+        const combined = [...mediumQs, ...hardQs].sort(()=>0.5 - Math.random());
+        let needed = totalQuestions - combined.length;
+
+        let easyQs = []
+        if (needed > 0){
+            easyQs = await fetchRandomQuestionsFromDB(topics, "Easy");
+        }
+
+        questions = [...combined, ...easyQs];
+    
+    } else if (difficulty === "Progressive"){
+
+        const [allEasy, allMedium, allHard] = await Promise.all([
+                fetchRandomQuestionsFromDB(topics, "Easy"),
+                fetchRandomQuestionsFromDB(topics, "Medium"),
+                fetchRandomQuestionsFromDB(topics, "Hard")
+            ]);
+                
+        let idealCounts = {};
+        if (totalQuestions === 2) idealCounts = { easy: 1, medium: 0, hard: 1 };
+        else {
+            const easyHardCount = Math.floor(totalQuestions / 3);
+            idealCounts = {
+                easy: easyHardCount,
+                hard: easyHardCount,
+                medium: totalQuestions - (2 * easyHardCount)
+            };
+        }
+
+        const easyQuota = allEasy.slice(0, idealCounts.easy);
+        const mediumQuota = allMedium.slice(0, idealCounts.medium);
+        const hardQuota = allHard.slice(0, idealCounts.hard);
+        
+        let collectedQs = [...easyQuota, ...mediumQuota, ...hardQuota];
+        let deficit = totalQuestions - collectedQs.length;
+
+        if (deficit > 0) {
+            const remainingMedium = allMedium.slice(idealCounts.medium);
+            const remainingEasy = allEasy.slice(idealCounts.easy);
+            const remainingHard = allHard.slice(idealCounts.hard);
+            const fallbackPool = [...remainingMedium, ...remainingEasy, ...remainingHard];
+
+            collectedQs.push(...fallbackPool);
+        }
+
+        questions = collectedQs;     
+    }
+
+    const finalQuestions = questions.slice(0, totalQuestions);
+    const result = finalQuestions.map(({ title_slug, difficulty }) => ({
+                    difficulty: difficulty,
+                    link: `https://leetcode.com/problems/${title_slug}`
+                    }));
+    
+    return result;
+}
 
 export {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner, 
         addLobbyDetails, addQuestions, getQuestions, isStarted, getStartTime, getTimeLimit, getSolvedQuestions,
-        addSubmittedQuestion, getLeaderboard};
+        addSubmittedQuestion, getLeaderboard, generateQuestions};
