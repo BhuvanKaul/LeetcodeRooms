@@ -49,10 +49,6 @@ function LobbySettings() {
         difficulty.current = event.target.value;
     };
 
-    const formatTopicAsValue = (topic) => {
-        return topic.toLowerCase().replaceAll(' ', '-');
-    };
-
     return (
         <div className={styles.settingsContainer}>
 
@@ -74,12 +70,11 @@ function LobbySettings() {
             
             <div className={styles.topicsList}>
                 {topics.map((topic, index)=>{
-                    const topicValue = formatTopicAsValue(topic);
                     return (
                         <div    key={index}
-                                onClick={()=>handleTopicClick(topicValue)}
+                                onClick={()=>handleTopicClick(topic)}
                                 className={ randomTopic ? styles.noTopics :
-                                            chosenTopics.includes(topicValue) ? styles.selectedTopic: styles.notSelectedTopic}>
+                                            chosenTopics.includes(topic) ? styles.selectedTopic: styles.notSelectedTopic}>
                                 {topic}
                         </div>
                     )

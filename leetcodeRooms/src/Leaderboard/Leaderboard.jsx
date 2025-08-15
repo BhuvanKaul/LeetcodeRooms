@@ -16,9 +16,9 @@ function Leaderboard() {
 
         {leaderboard.length > 0 &&
             <div>
-                {leaderboard.map((user) => (
-                    <div key={user.userid}>
-                        {user.userid}
+                {leaderboard.map((user, index) => (
+                    <div key={index}>
+                        {user.name}
                     </div>
                 ))}
             </div>

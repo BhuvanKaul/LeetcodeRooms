@@ -95,13 +95,13 @@ function Questions() {
         <div className={styles.mainContainer}>
 
             <div className={styles.questionLeaderboardChoice}>
-                <div> 
+                <div onClick={handleShowQuestions}> 
                     <FaTasks className={styles.icons}/> 
-                    <span onClick={handleShowQuestions}>Questions</span>
+                    <span>Questions</span>
                 </div>
-                <div>
+                <div onClick={handleShowLeaderBoard}>
                     <FaTrophy className={styles.icons}/> 
-                    <span onClick={handleShowLeaderBoard}>Ranking</span>
+                    <span>Ranking</span>
                 </div>
             </div>
             
@@ -136,8 +136,6 @@ function Questions() {
                         </div>
                     </div>
             
-            
-
                     {questions.map((question, index)=>(
                         <div key={index} className={styles.questionContainer}>
                             <a href={question} target="_blank" rel="noopener noreferrer">
