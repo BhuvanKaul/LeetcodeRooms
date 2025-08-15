@@ -130,31 +130,35 @@ function CreateRoomPopup(props){
 
                     <div className={styles.lobbyTypeButtonContainer}>
 
-                        <div className={styles.publicContainer}>
-                            <input  type='radio'
-                                    value='public' 
-                                    checked={lobbyType==='public'}
-                                    onChange={handleLobbyTypeChange}>
-                            </input>
+                        <label htmlFor="public-lobby" className={styles.publicContainer}>
+                            <input  
+                                type='radio'
+                                value='public' 
+                                checked={lobbyType==='public'}
+                                onChange={handleLobbyTypeChange}
+                                id="public-lobby"
+                            />
                             <Users/>
                             <div className={styles.publicText}>
                                 <h4>Public</h4>
                                 <p>Anyone can join</p>
                             </div>
-                        </div>
+                        </label>
 
-                        <div className={styles.privateContainer}>
-                            <input  type='radio'
-                                    value='private' 
-                                    checked={lobbyType==='private'}
-                                    onChange={handleLobbyTypeChange}>
-                            </input>
+                        <label htmlFor="private-lobby" className={styles.privateContainer}>
+                            <input  
+                                type='radio'
+                                value='private' 
+                                checked={lobbyType==='private'}
+                                onChange={handleLobbyTypeChange}
+                                id="private-lobby"
+                            />
                             <Lock/>
                             <div className={styles.privateText}>
                                 <h4>Private</h4>
                                 <p>Password protected</p>
                             </div>
-                        </div>
+                        </label>
 
                     </div>
 

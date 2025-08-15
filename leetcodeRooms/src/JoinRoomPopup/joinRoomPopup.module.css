@@ -1,5 +1,4 @@
 .backdrop{
-    border: burlywood solid;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -9,53 +8,109 @@
     left: 0;
     height: 100dvh;
     width: 100dvw;
-    background: rgba(0, 0, 0, 0.6);
+    background: hsla(270, 8%, 12%, 0.7);
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.2s ease-out;
 }
 .popupContainer{
-    background-color: beige;
-    display: flex;
+    display: flex;  
     flex-direction: column;
-    border: moccasin solid;
-    padding: 30px 15px 30px 15px;
-    gap: 20px;
-    max-width: 450px;
+    gap: 15px;
+    position: fixed;
+    z-index: 2;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width:100%;
+    max-width: 450px;
+    padding: 30px 20px;
+    border-radius: 1.5rem;
+    background-color: hsl(270, 8%, 15%);
+    border: 1px solid hsl(270, 8%, 25%);
+    animation: scaleUp 0.2s ease-out forwards;
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
 }
 .headingContainer{
-    border: black solid;
-
+    font-size: 1.2rem;
 }
-.idInput{
+.idInput, .nameContainer input{
     font-size: 1rem;
-    height: 2rem;
+    height: 2.5rem;
     width: 100%;
-    margin-top: 5px;
-    text-align: center;
+    margin-top: 10px;
+    box-sizing: border-box;
+    background-color: hsl(270, 8%, 12%);
+    border: 1px solid hsl(270, 8%, 30%);
+    color: hsl(270, 20%, 95%);
+    padding: 0 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease-in-out;
+}
+.idInput:focus, .nameContainer input:focus {
+    outline: none;
+    border-color: hsl(265, 85%, 70%);
 }
 .inputContainer p {
+    margin-top: 8px;
     font-size: 0.75rem;
 }
 .buttonContainer{
     display: flex;
-    gap: 30px
+    gap: 15px;
+    padding-top: 15px;
+    border-top: 1px solid hsl(270, 8%, 25%);
 }
 .buttonContainer button{
-    font-size: 1.2rem;
-    padding: 5px;
+    font-size: 1.1rem;
+    padding: 10px;
     width: 100%;
+    flex: 1;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-out;
 }
-.nameContainer input{
-    font-size: 1rem;
-    height: 2rem;
-    width: 100%;
-    margin-top: 5px;
+.buttonContainer button:first-child {
+    background-color: transparent;
+    border: 1px solid hsl(270, 8%, 40%);
+    color: hsl(270, 10%, 75%);
+}
+.buttonContainer button:first-child:hover {
+    background-color: hsl(270, 8%, 25%);
+    color: white;
+}
+.buttonContainer button:last-child {
+    border: none;
+    color: white;
+    background: linear-gradient(135deg, hsl(265, 85%, 70%), hsl(280, 85%, 60%));
+}
+.buttonContainer button:last-child:hover {
+    transform: translateY(-2px);
 }
 .errorMessage{
-    margin-top: 2px;
-    font-size: 0.75rem;
+    margin-top: 5px;
+    font-size: 0.8rem;
     color: red;
 }
-.shake{
+.nameContainer input.shake{
     border: red solid;
     animation: shake 0.3s ease;
 }

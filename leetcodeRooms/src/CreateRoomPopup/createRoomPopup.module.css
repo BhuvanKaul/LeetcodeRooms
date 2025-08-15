@@ -1,5 +1,4 @@
 .backdrop{
-    border: burlywood solid;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -9,11 +8,12 @@
     left: 0;
     height: 100dvh;
     width: 100dvw;
-    background: rgba(0, 0, 0, 0.6);
+    background: hsla(270, 8%, 12%, 0.7);
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.2s ease-out forwards;
 }
 .popupContainer{
-    display: flex;
-    border: gold solid;
+    display: flex;  
     flex-direction: column;
     gap: 15px;
     position: fixed;
@@ -23,12 +23,34 @@
     transform: translate(-50%, -50%);
     width:100%;
     max-width: 450px;
-    background-color: hsl(350, 100%, 78%);
-    padding: 30px 15px 30px 15px;
-    border-radius: 10px;
+    padding: 30px 20px;
+    border-radius: 1.5rem;
+    background-color: hsl(270, 8%, 15%);
+    border: 1px solid hsl(270, 8%, 25%);
+    animation: scaleUp 0.2s ease-out forwards;
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleUp {
+    from {
+        opacity: 0;
+       
+        transform: translate(-50%, -50%) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
 }
 .headingContainer{
-    border: black solid;
+    font-size: 1.2rem;
 }
 .lobbyTypeText{
     margin-bottom: 10px;
@@ -36,10 +58,21 @@
 
 .publicContainer, .privateContainer{
     display: flex;
-    gap: 5px;
-    border: gray solid;
+    gap: 10px;
     align-items: center;
-    padding: 5px;
+    padding: 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    background-color: hsl(270, 8%, 20%);
+    border: 2px solid hsl(270, 8%, 30%);
+    transition: all 0.2s ease-in-out;
+}
+.publicContainer input, .privateContainer input{
+    cursor: pointer;
+}
+.publicContainer:has(input:checked), .privateContainer:has(input:checked) {
+    border-color: hsl(265, 85%, 70%);
+    background-color: hsla(265, 85%, 70%, 0.1);
 }
 .publicContainer{
     margin-bottom: 10px;
@@ -47,6 +80,15 @@
 .publicText, .privateText{
     display: flex;
     flex-direction: column;
+    color: hsl(270, 10%, 75%);
+}
+.publicText h4, .privateText h4 {
+    color: hsl(270, 20%, 95%);
+    cursor: pointer;
+}
+.publicText p, .privateText p {
+    font-size: 0.9rem;
+    cursor: pointer;
 }
 
 
@@ -61,23 +103,34 @@
   }
 }
 .passwordContainer{
-    border: pink solid;
     opacity: 0;
     animation: fadeInUp 0.4s ease-out forwards;
 }
 .passwordInput{
     margin-top: 10px;
     width: 100%;
-    height: 2rem;
+    box-sizing: border-box;
+    height: 2.5rem;
     font-size: 1rem;
+    background-color: hsl(270, 8%, 12%);
+    border: 1px solid hsl(270, 8%, 30%);
+    color: hsl(270, 20%, 95%);
+    padding: 0 12px;
+    border-radius: 8px;
+}
+.passwordInput:focus {
+    outline: none;
+    border-color: hsl(265, 85%, 70%);
 }
 
 .buttonContainer{
     display: flex;
     justify-content: center;
     align-items: center;
-    border: blueviolet solid;
     gap:30px;
+    margin-top: 10px;
+    padding-top: 15px;
+    border-top: 1px solid hsl(270, 8%, 25%);
 }
 
 .cancelButtonContainer, .createButtonContainer{
@@ -88,24 +141,56 @@
 }
 
 .buttonContainer button{
-    padding: 5px;
-    font-size: 1.2rem;
+    padding: 10px;
+    font-size: 1.1rem;
     width: 100%;
     max-width: 200px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-out;
+}
+.cancelButtonContainer button {
+    background-color: transparent;
+    border: 1px solid hsl(270, 8%, 40%);
+    color: hsl(270, 10%, 75%);
+}
+.cancelButtonContainer button:hover {
+    background-color: hsl(270, 8%, 25%);
+    color: white;
+}
+.createButtonContainer button {
+    border: none;
+    color: white;
+    background: linear-gradient(135deg, hsl(265, 85%, 70%), hsl(280, 85%, 60%));
+}
+.createButtonContainer button:hover {
+    transform: translateY(-2px);
 }
 .nameContainer input{
     font-size: 1rem;
-    height: 2rem;
+    height: 2.5rem;
     width: 100%;
+    box-sizing: border-box;
     margin-top: 5px;
+    background-color: hsl(270, 8%, 12%);
+    border: 1px solid hsl(270, 8%, 30%);
+    color: hsl(270, 20%, 95%);
+    padding: 0 12px;
+    border-radius: 8px;
+    transition: border-color 0.2s ease; 
+}
+.nameContainer input:focus {
+    outline: none;
+    border-color: hsl(265, 85%, 70%);
 }
 .errorMessage{
-    margin-top: 2px;
-    font-size: 0.75rem;
+    margin-top: 5px;
+    font-size: 0.85rem;
     color: red;
 }
-.shake{
-    border: red solid;
+.nameContainer input.shake{
+    border: 1px solid red;
     animation: shake 0.3s ease;
 }
 
