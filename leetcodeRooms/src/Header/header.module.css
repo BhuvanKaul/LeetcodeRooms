@@ -1,5 +1,5 @@
 .headerContainer{
-    padding: 10px;
+    padding: 5px 0px 10px 0px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -10,6 +10,7 @@
     font-size: 1.25rem;
     text-align: center;
     margin-bottom: 0.5rem;
+    color: hsl(270, 10%, 75%);  
 }
 
 .heading{
@@ -19,23 +20,60 @@
     margin-bottom: 0.5rem;
 }
 
-.websiteName{
+.websiteName {
     font-size: 3.5rem;
+    background: linear-gradient(
+        45deg,
+        hsl(265, 90%, 75%),
+        hsl(280, 100%, 70%),
+        hsl(190, 100%, 60%) /* Added a third color for more variety */
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    background-size: 200% auto;
+    animation: gradientShift 4s ease-in-out infinite;
+}
+
+/* Keyframes to shift the background position */
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 .logoContainer{
     display: flex;
     justify-content: center;
     align-items: center;
-    width:4rem;
-    height: 4rem;
+    width: 3.5rem;
+    height: 3.5rem;
     margin-right: 10px;
-    border-radius: 15px;
+}
+.chevronLeft {
+    margin-right: -15px;
+}
+
+@keyframes iconColorChange {
+    0% { color: hsl(280, 100%, 70%); }
+    25% { color: hsl(310, 100%, 65%); }
+    50% { color: hsl(190, 100%, 60%); }
+    75% { color: hsl(260, 100%, 65%); }
+    100% { color: hsl(280, 100%, 70%); }
 }
 
 .codeLogo{
     width: 2.5rem;
     height: 2.5rem;
+    color: hsl(265, 90%, 75%);
+    animation: iconColorChange 4s ease-in-out infinite;
 }
 
 @media screen and (max-width: 800px) {
@@ -52,5 +90,8 @@
     .codeLogo{
         width: 1.5rem;
         height: 1.5rem;
+    }
+    .chevronLeft {
+        margin-right: -10px;
     }
 }

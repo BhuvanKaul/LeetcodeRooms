@@ -24,16 +24,17 @@ function Footer(){
                 <div className={styles.contactMeContainer}>
                     <div className={styles.contactMeText}>Contact Me</div>
 
-                    <a href="https://www.linkedin.com/in/bhuvan-kaul-4609bb259/" target="_blank" rel="noopener noreferrer">
-                        <FaLinkedin className={styles.linkedinLogo}/>
-                    </a>
-                    <a href="https://github.com/BhuvanKaul" target="_blank" rel="noopener noreferrer">
-                        <FaGithub className={styles.githubLogo}/>
-                    </a>
-                    <a href="mailto:bhuvan.kaul9@gmail.com">
-                        <Mail className={styles.gmailLogo}/>
-                    </a>
-          
+                    <div className={styles.contactMeIcons}>
+                        <a href="https://www.linkedin.com/in/bhuvan-kaul-4609bb259/" target="_blank" rel="noopener noreferrer">
+                            <FaLinkedin className={styles.linkedinLogo}/>
+                        </a>
+                        <a href="https://github.com/BhuvanKaul" target="_blank" rel="noopener noreferrer">
+                            <FaGithub className={styles.githubLogo}/>
+                        </a>
+                        <a href="mailto:bhuvan.kaul9@gmail.com">
+                            <Mail className={styles.gmailLogo}/>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

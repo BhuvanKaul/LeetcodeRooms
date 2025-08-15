@@ -1,4 +1,4 @@
-import {Code} from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './header.module.css'
 
 function Header() {
@@ -6,7 +6,8 @@ function Header() {
         <div className={styles.headerContainer}>
             <div className={styles.heading}>
                 <div className={styles.logoContainer}>
-                    <Code className={styles.codeLogo}/>
+                    <ChevronLeft className={`${styles.codeLogo} ${styles.chevronLeft}`} />
+                    <ChevronRight className={`${styles.codeLogo} ${styles.chevronRight}`} />
                 </div>
                 <h1 className={styles.websiteName}>LeetRooms</h1>
             </div>

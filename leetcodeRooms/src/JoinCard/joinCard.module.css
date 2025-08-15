@@ -2,8 +2,6 @@
     display: flex;
     flex-direction: column;
     flex: 1;
-    border: black solid;
-    border-width: 1px;
     padding: 15px;
     margin: 25px;
     justify-content: center;
@@ -11,41 +9,67 @@
     height: 90%;
     max-width: 500px;
     max-height: 500px;
+    border-radius: 1.5rem;
+    background-color: hsl(270, 8%, 15%);
+    border: 1px solid hsl(270, 8%, 25%);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1),
+                box-shadow 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.joinCard:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
 }
 
 .joinCard h1{
     font-size: 2.25rem;
     text-align: center;
     margin-bottom: 10px;
+    color: hsl(270, 20%, 95%);
 }
 .joinCard p{
     font-size: 1.1rem;
     text-align: center;
     margin-bottom: 25px;
+    color: hsl(270, 10%, 65%);
 }
 .joinCard button{
     font-size: 1.3rem;
-    width: 100%;
+    font-weight: 600;
+    width: 90%;
     height: 3rem;
     border: none;
     border-radius: 10px;
+    cursor: pointer;
+    color: white;
+    background: linear-gradient(135deg, hsl(265, 85%, 70%), hsl(280, 85%, 60%));
+    box-shadow: 0 4px 15px hsla(270, 85%, 65%, 0.3);
+    transition: all 0.3s ease-out;
+}
+.joinCard button:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px hsla(270, 85%, 65%, 0.4);
+}
+.joinCard button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px hsla(270, 85%, 65%, 0.2);
 }
 
-
 .logoContainer{
-    border: black solid;
     width: 4rem;
     height: 4rem;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 15px;
-    margin-bottom: 10px
+    margin-bottom: 10px;
+    border: 2px solid hsl(270, 8%, 30%);
 }
 
 .logo{
     width: 2.5rem;
     height: 2.5rem;
+    color: hsl(270, 10%, 65%);
 }
 .buttonLogo{
     width:1rem;

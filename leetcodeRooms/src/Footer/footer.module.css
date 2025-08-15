@@ -5,61 +5,74 @@ a:visited{
     color:inherit;
 }
 .footerContainer{
-    border: black solid;
     display: flex;
     gap:10px;
+    padding: 10px 20px 0px 20px;
+    margin-top: 20px;
+    background-color: hsl(270, 8%, 10%);
+    border-top: 1px solid hsl(270, 8%, 20%);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .aboutLeetRoomsContainer{
     display: flex;
     flex-direction: column;
     flex:1;
-    border:blue solid;
+    gap: 0.3rem;
 }
 .aboutLeetRoomsContainer p {
-    font-size: 1rem;
+    font-size: 0.9rem;
+    color: hsl(270, 10%, 65%);
 }
 .aboutLeetRoomsHeading{
     display: flex;
-    border: orange solid;
+    align-items: center;
 }
 .aboutLeetRoomsHeading h2{
-    font-size: 1.5rem;
+    font-size: 1.1rem;
 }
 .aboutMeContactMeContainer{
     display: flex;
-    flex-direction: column;
-    border: blue solid;
     flex:1;
 }
 .aboutMeContainer{
-    border: black solid;
     flex: 1;
 }
 .aboutMeContainer p{
-    font-size: 1rem;
+    margin-top: 0.3rem;
+    font-size: 0.9rem;
+    color: hsl(270, 10%, 65%);
 }
 .aboutMeContainer h3{
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
 .contactMeContainer{
     display: flex;
-    border: red solid;
     flex: 1;
-    gap:1.5rem;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.contactMeIcons{
+    display: flex;
+    gap: 10px;
+    justify-content: center;
 }
 .contactMeText{
     display: flex;
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: bold;
     justify-content: center;
     align-items: center;
-    border: yellowgreen solid;
 }
 .linkedinLogo, .gmailLogo, .githubLogo{
-    height: 100%;
-    width: 2rem;
+    height: 1.5rem;
+    width: 1.5rem;
+    cursor: pointer;
+}
+.linkedinLogo:hover, .gmailLogo:hover, .githubLogo:hover {
+    opacity: 0.7;
 }
 .linkedinLogo{
     color: #0a66c2;
@@ -68,14 +81,20 @@ a:visited{
     display: flex;
     justify-content: center;
     align-items: center;
-    border: pink solid;
     margin-right: 10px;
-    width: 2.3rem;
-    height: 2.3rem;
+    width: 1.1rem;
+    height: 1.1rem;
 }
 
-@media screen and (max-width:650px){
+@media screen and (max-width:768px){
     .footerContainer{
         flex-direction: column;
+    }
+    .aboutMeContactMeContainer{
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .contactMeText{
+        justify-content: flex-start;
     }
 }
