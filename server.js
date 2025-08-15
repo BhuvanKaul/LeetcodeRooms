@@ -170,7 +170,6 @@ app.post('/lobbies/:lobbyId/submit', async(req, res)=>{
 });
 
 app.get('/lobbies/:lobbyId/leaderboard', async(req, res)=>{
-    console.log('got request');
     const lobbyId = req.params.lobbyId;
     try{
         const leaderboard = await getLeaderboard(lobbyId);
