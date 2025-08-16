@@ -1,0 +1,80 @@
+.leaderboardContainer {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 4rem 0;
+    font-size: 1.1rem;
+    color: hsl(270, 10%, 65%);
+}
+
+.leaderboardTable {
+    display: flex;
+    flex-direction: column;
+}
+
+.headerRow, .userRow {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+}
+
+.headerRow {
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: hsl(270, 10%, 75%);
+    border-bottom: 1px solid hsl(270, 8%, 25%);
+}
+
+.userRow {
+    font-size: 1.1rem;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.userRow:hover {
+    background-color: hsl(270, 8%, 20%);
+}
+
+.rank {
+    flex-basis: 80px;
+    flex-shrink: 0;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.player {
+    flex-grow: 1;
+}
+
+.score {
+    flex-basis: 100px;
+    flex-shrink: 0;
+    text-align: right;
+    font-weight: 700;
+    color: hsl(270, 20%, 95%);
+}
+
+.time {
+    flex-basis: 120px;
+    flex-shrink: 0;
+    text-align: right;
+    color: hsl(270, 10%, 75%);
+}
+
+.crownIcon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: hsl(45, 100%, 60%);
+    stroke-width: 2.5;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

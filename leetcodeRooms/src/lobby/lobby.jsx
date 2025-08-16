@@ -5,8 +5,8 @@ import { useState, useContext, useMemo, useEffect, useRef, useCallback } from "r
 import { io } from 'socket.io-client';
 import { 
     participantsContext, chosenTopicsContext, randomTopicContext, ownerIdContext, 
-    userIdContext, competitionStarted, questionsContext, leaderboardContext, 
-    lobbyIdContext, nameContext, socketContext
+    userIdContext, competitionStarted, leaderboardContext, 
+    lobbyIdContext, nameContext, socketContext, lobbyInitializationContext
 } from "../Contexts.js";
 import Participants from '../Participants/Participants.jsx';
 import LobbySettings from "../lobbySettings/LobbySettings.jsx";
@@ -23,10 +23,10 @@ function Lobby() {
     const lobbyId = useContext(lobbyIdContext);
     const name = useContext(nameContext);
     const isOwner = ownerId?.trim() === userId?.trim();
-    const [questions, setQuestions] = useContext(questionsContext);
     const [leaderboard, setLeaderboard] = useState([]);
     const socketRef = useRef(null);
     const [messages, setMessages] = useState([]);
+    const isInitialized = useContext(lobbyInitializationContext);
 
     const participantsVal = useMemo(()=> ({ participants, setParticipants }), [participants]);
     const chosenTopicsVal = useMemo(() => ({ chosenTopics, setChosenTopics }), [chosenTopics]);
@@ -46,6 +46,10 @@ function Lobby() {
     }, [lobbyId]);
 
     useEffect(() => {
+        if(!isInitialized){
+            return
+        }
+
         fetchLeaderboard();
 
         const serverIP = import.meta.env.VITE_SERVER_IP;
@@ -81,7 +85,7 @@ function Lobby() {
         return () => {
             socket.disconnect();
         };
-    }, [lobbyId, userId, name, setStarted, fetchLeaderboard]);
+    }, [lobbyId, userId, name, setStarted, fetchLeaderboard, isInitialized]);
 
     useEffect(() => {
         if (started && isOwner && socketRef.current) {

@@ -26,7 +26,7 @@
         45deg,
         hsl(265, 90%, 75%),
         hsl(280, 100%, 70%),
-        hsl(190, 100%, 60%) /* Added a third color for more variety */
+        hsl(190, 100%, 60%)
     );
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -36,7 +36,6 @@
     animation: gradientShift 4s ease-in-out infinite;
 }
 
-/* Keyframes to shift the background position */
 @keyframes gradientShift {
     0% {
         background-position: 0% 50%;

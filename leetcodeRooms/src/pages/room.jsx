@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useParams, useNavigate } from 'react-router-dom';
 import Lobby from '../lobby/lobby.jsx';
-import { lobbyIdContext, userIdContext, nameContext, ownerIdContext, competitionStarted, lobbyDetails, questionsContext, sendDataContext, startTimeContext, timeLimitContext } from '../Contexts.js';
+import { lobbyIdContext, userIdContext, nameContext, ownerIdContext, competitionStarted, lobbyDetails, 
+        questionsContext, sendDataContext, startTimeContext, timeLimitContext, lobbyInitializationContext } from '../Contexts.js';
 
 function Room() {
     const serverIP = import.meta.env.VITE_SERVER_IP;
@@ -16,6 +17,7 @@ function Room() {
     const [sendData, setSendData] = useState(false);
     const startTimeRef = useRef(null);
     const timeLimitRef = useRef(null);
+    const [isInitialized, setIsInitialized] = useState(false);
 
     const lobbyTopics = useRef('random');
     const numberOfQues = useRef(4);
@@ -52,6 +54,8 @@ function Room() {
 
                 const startData = await isStarted.json();
                 setStarted(startData.start);
+
+                setIsInitialized(true);
 
             } catch (error) {
                 console.error('Failed to initialize lobby:', error.message);
@@ -129,7 +133,9 @@ useEffect(()=>{
             <sendDataContext.Provider value={[sendData, setSendData]}>
             <startTimeContext.Provider value={startTimeRef}>
             <timeLimitContext.Provider value={timeLimitRef}>
+            <lobbyInitializationContext.Provider value={isInitialized}>
                 <Lobby/>
+            </lobbyInitializationContext.Provider>
             </timeLimitContext.Provider>
             </startTimeContext.Provider>
             </sendDataContext.Provider>

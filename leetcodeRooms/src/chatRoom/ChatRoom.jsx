@@ -47,7 +47,7 @@ function ChatRoom({ messages, sendMessage }) {
                     }
 
                     return(
-                        <div key={index} className={styles.messageEntry}>
+                        <div key={index} className={styles.messageEntry} data-isme={msg.name === name ? 'true' : 'false'}>
                             <div className={styles.messageHeader}>
                                 <span className={styles.senderName}>
                                     {msg.name === name ? 'You' : msg.name}

@@ -2,7 +2,7 @@
     min-width: 400px;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 160px);
+    height: 100%
 }
 .messages {
     flex: 1;
@@ -11,8 +11,11 @@
     gap: 1rem; 
     padding: 15px;
     overflow-y: auto;
-}
+    min-height: 0;
 
+    scrollbar-width: thin;
+    scrollbar-color: hsl(265, 85%, 70%) transparent;
+}
 
 .messageEntry {
     display: flex;
@@ -23,31 +26,46 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.3rem;
 }
 
 .senderName {
-    font-weight: bold;
+    font-weight: 600;
     font-size: 0.9rem;
+    color: hsl(270, 10%, 75%);
 }
 
 .timeStamp {
     font-size: 0.75rem;
-    color: #888;
+    color: hsl(270, 8%, 45%);
+}
+.messageBubble {
+    padding: 10px 14px;
+    border-radius: 18px;
+    max-width: 85%;
+    width: fit-content; 
+    word-wrap: break-word;
+    line-height: 1.4;
+    font-size: 0.95rem;
+
+    background-color: hsl(270, 8%, 25%);
+    color: hsl(270, 20%, 95%);
+    border-bottom-left-radius: 4px;
 }
 
+.messageEntry[data-isme="true"] {
+    align-items: flex-end;
+}
 
-.messageBubble {
-    background-color: hsl(216, 20%, 95%);
-    padding: 10px 12px;
-    border-radius: 12px;
-    max-width: 80%;
-    width: fit-content; 
-    word-wrap: break-word; 
+.messageEntry[data-isme="true"] .messageBubble {
+    background: linear-gradient(135deg, hsl(265, 85%, 70%), hsl(280, 85%, 60%));
+    color: white;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 4px;
 }
 
 .systemMessage {
-    color: #888;
+    color: hsl(270, 10%, 65%);
     font-size: 0.85rem;
     text-align: center;
     font-style: italic;
@@ -56,40 +74,46 @@
 
 
 .sendMessageContainer {
-    height: 60px;
     padding: 10px;
     display: flex;
     align-items: center;
     gap: 10px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid hsl(270, 8%, 25%);
 }
 
 .sendMessageContainer input {
-    height: 100%;
+    height: 40px;
     font-size: 1rem;
     flex: 1;
-    border: 1px solid #ccc;
     border-radius: 8px;
-    padding: 0 10px;
+    padding: 0 12px;
+    background-color: hsl(270, 8%, 20%);
+    border: 1px solid hsl(270, 8%, 30%);
+    color: hsl(270, 20%, 95%);
+    transition: border-color 0.2s ease;
 }
 .sendMessageContainer input:focus{
     outline: none;
+    border-color: hsl(265, 85%, 70%);
 }
 
 .sendMessageContainer button {
     padding: 5px;
-    height: 100%;
-    width: 48px;
-    background-color: #007bff;
-    color: white;
+    height: 40px;
+    width: 40px;
     border: none;
     border-radius: 8px;
     cursor: pointer;
-    transition: background-color 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s ease;
+    background: linear-gradient(135deg, hsl(265, 85%, 70%), hsl(280, 85%, 60%));
+    color: white;
 }
 
-.sendMessageContainer button:hover{
-    background-color: #0056b3;
+.sendMessageContainer button:hover {
+    transform: scale(1.05);
 }
 
 .sendIconContainer {

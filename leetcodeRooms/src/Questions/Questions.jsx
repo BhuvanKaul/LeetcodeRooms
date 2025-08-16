@@ -19,6 +19,7 @@ function Questions() {
     const socketRef = useContext(socketContext);
     const [showQuestions, setShowQuestions] = useState(true);
     const [showLeaderboard, setShowLeaderboard] = useState(false);
+    const [submittingQuestion, setSubmittingQuestion] = useState(null);
 
     useEffect(()=>{
         const getSolvedQuestions = async ()=>{
@@ -44,6 +45,7 @@ function Questions() {
 
     const handleSubmitQuestion = async(question) => {
         const leetcodeUsername = leetcodeUsernameRef.current;
+        setSubmittingQuestion(question);
         
         try{
             if (!leetcodeUsername){
@@ -75,9 +77,11 @@ function Questions() {
                 }
             } else{
                 console.log('Wrong Question');
+                setSubmittingQuestion(null);
             }   
         } catch(err){
             console.log('Bad UserName');
+            setSubmittingQuestion(null);
         }
     }
 
@@ -95,11 +99,11 @@ function Questions() {
         <div className={styles.mainContainer}>
 
             <div className={styles.questionLeaderboardChoice}>
-                <div onClick={handleShowQuestions}> 
+                <div onClick={handleShowQuestions} className={showQuestions ? styles.activeTab : ''}> 
                     <FaTasks className={styles.icons}/> 
                     <span>Questions</span>
                 </div>
-                <div onClick={handleShowLeaderBoard}>
+                <div onClick={handleShowLeaderBoard} className={!showQuestions ? styles.activeTab : ''}>
                     <FaTrophy className={styles.icons}/> 
                     <span>Ranking</span>
                 </div>
@@ -107,7 +111,7 @@ function Questions() {
             
 
             {showQuestions && 
-                <>
+                <div className={styles.matchContainer}>
                     <div className={styles.userNameContainer}>
                         <span>
                             Enter Leetode Username
@@ -135,24 +139,36 @@ function Questions() {
                             <img src={submissionGuideImage} className={styles.image}/>
                         </div>
                     </div>
-            
-                    {questions.map((question, index)=>(
-                        <div key={index} className={styles.questionContainer}>
-                            <a href={question} target="_blank" rel="noopener noreferrer">
-                                Question {index + 1}
-                            </a>
 
-                            {!solvedQuestions.includes(question) &&
-                                <button className={styles.submitButton} onClick={()=>handleSubmitQuestion(question)}> Submit</button>
-                            }
+                    <div className={styles.allQuestionsContainer}>
+                        {questions.map((question, index)=>(
+                            <div key={index} className={styles.questionContainer}>
+                                <a href={question} target="_blank" rel="noopener noreferrer">
+                                    Question {index + 1}
+                                </a>
 
-                            {solvedQuestions.includes(question) &&
-                                <Check className={styles.submittedIcon}/>
-                            }
+                                {!solvedQuestions.includes(question) &&
+                                    <button
+                                        className={styles.submitButton}
+                                        onClick={() => handleSubmitQuestion(question)}
+                                        disabled={submittingQuestion === question}
+                                    >
+                                        {submittingQuestion === question ? (
+                                            <div className={styles.loader}></div>
+                                        ) : (
+                                            'Submit'
+                                        )}
+                                    </button>
+                                }
 
-                        </div>
-                    ))}
-                </>
+                                {solvedQuestions.includes(question) &&
+                                    <Check className={styles.submittedIcon}/>
+                                }
+
+                            </div>
+                        ))}
+                    </div>
+                </div>
             }
             
             {showLeaderboard &&

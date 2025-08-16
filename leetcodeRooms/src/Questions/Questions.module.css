@@ -1,103 +1,208 @@
-.mainContainer{
+.mainContainer {
     display: flex;
-    gap: 0.5rem;
     flex-direction: column;
-    border: red solid;
+    gap: 1.5rem;
     flex: 1;
+    min-height: 0;
 }
 .questionLeaderboardChoice{
     display: flex;
-    margin-bottom: -0.5rem;
+    border-bottom: 1px solid hsl(270, 8%, 25%);
 }
 .icons{
-    width: 1rem;
-    height: 1rem;
+    width: 1.1rem;
+    height: 1.1rem;
 }
 .questionLeaderboardChoice div{
-    padding: 10px;
+    padding: 10px 20px;
     font-size: 1.1rem;
+    font-weight: 500;
     display: flex;
-    gap: 5px;
+    gap: 8px;
     cursor: pointer;
     justify-content: center;
     align-items: center;
     text-align: center;
+    color: hsl(270, 10%, 75%);
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease-in-out;
 }
 .questionLeaderboardChoice div:hover{
-    background-color: hsl(216, 20%, 95%);
+    color: hsl(270, 20%, 95%);
+    background-color: hsl(270, 8%, 20%);
+}
+.questionLeaderboardChoice div.activeTab {
+    color: hsl(270, 20%, 95%);
+    border-bottom-color: hsl(265, 85%, 70%);
 }
 .guideContainer{
     position: relative;
     display: flex;
 }
 .questionContainer{
-    border: blanchedalmond solid;
-    padding: 10px 5px 10px 5px;
+    padding: 15px 10px;
     display: flex;
     align-items: center;
+    border-bottom: 1px solid hsl(270, 8%, 25%);
+}
+.questionContainer a {
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: hsl(270, 20%, 95%);
+    transition: color 0.2s ease;
+}
+.questionContainer a:hover {
+    color: hsl(265, 85%, 70%);
 }
 .submitButton{
-    font-size: 1rem;
-    padding: 4px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 9px 12px;
     margin-left: auto;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: white;
+    background: linear-gradient(135deg, hsl(265, 85%, 70%), hsl(280, 85%, 60%));
+    transition: transform 0.2s ease;
+    min-width: 70px;
+}
+.submitButton:hover {
+    transform: scale(1.05);
 }
 .submitGuide{
     display: flex;
-    gap: 2px;
+    gap: 5px;
     align-items: center;
-    border: blue solid;
     cursor: pointer;
     align-self: flex-start;
+    color: hsl(270, 10%, 75%);
+    font-size: 0.9rem;
+    transition: color 0.2s ease;
+    margin-top: 1rem;
+}
+.submitGuide:hover {
+    color: hsl(265, 85%, 70%);
 }
 .questionMarkIcon{
     width: 1rem;
     height: 1rem;
 }
 .submitHelper{
+    text-align: center;
     display: none;
     background-color: hsl(216, 20%, 95%);;
-    text-align: center;
-    padding: 0.8rem;
-
+    padding: 1rem;
     position: absolute;
     top: 100%;            
     left: 0;              
     z-index: 10;          
     width: 700px;   
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     font-size: 0.9rem;
+    background-color: hsl(270, 8%, 20%);
+    border: 1px solid hsl(270, 8%, 30%);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    color: hsl(270, 10%, 75%);
+    border-radius: 0.5rem;
+    margin-top: 10px;
 }
 .submitHelper i{
     font-size: 0.85rem;
     color: hsl(0, 61%, 48%);
 }
-.submitGuide:hover + .submitHelper {
+.submitGuide:hover + .submitHelper, .submitHelper:hover {
     display: block;
 }
 .image{
     margin-top: 1rem;
-    width: 550px;
-    height: 250px;
+    width: 100%;
+    max-width: 550px;
+    height: auto;
+    border-radius: 5px;
 }
 .userNameContainer{
     display: flex;
     gap : 10px;
-    border: yellow solid;
     padding: 10px 5px;
     justify-content: center;
-    font-weight: bold;
+    font-weight: 500;
     align-items: center;
     font-size: 1.1rem;
+    background-color: hsl(270, 8%, 20%);
+    border: 1px solid hsl(270, 8%, 30%);
+    border-radius: 10px;
+}
+.userNameContainer span {
+    color: hsl(270, 10%, 85%);
 }
 .userNameContainer input{
     font-size: 1rem;
-    padding: 5px;
+    padding: 8px;
+    background-color: hsl(270, 8%, 15%);
+    border: 1px solid hsl(270, 8%, 40%);
+    color: hsl(270, 20%, 95%);
+    border-radius: 8px;
 }
-.submittedIcon{
+.userNameContainer input:focus {
+    outline: none;
+    border-color: hsl(265, 85%, 70%);
+}
+.submittedIcon {
     margin-left: auto;
-    color: green;
-    height: 30px;
-    width: 30px;
+    height: 28px;
+    width: 28px;
+    color: hsl(145, 65%, 45%);
+}
+
+.allQuestionsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    border-radius: 10px;
+    padding: 1rem;
+}
+.allQuestionsContainer::-webkit-scrollbar {
+    width: 8px;
+}
+.allQuestionsContainer::-webkit-scrollbar-track {
+    background: transparent;
+}
+.allQuestionsContainer::-webkit-scrollbar-thumb {
+    background-color: hsl(265, 85%, 70%);
+    border-radius: 1.5rem;
+}
+.allQuestionsContainer::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(265, 90%, 75%);
+}
+.matchContainer{
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.5s ease-out;
+    min-height: 0;
+    flex: 1;
+}
+.submitButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+.loader {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid #ffffff;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }

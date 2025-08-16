@@ -1,7 +1,7 @@
 import styles from './LobbySettings.module.css';
 import { Settings, Shuffle } from 'lucide-react';
 import { chosenTopicsContext, randomTopicContext, lobbyDetails } from '../Contexts';
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 
 function LobbySettings() {
     const topics = ["Array", "String", "Hash Table", "Dynamic Programming", "Math", "Sorting", "Greedy", "Depth-First Search", 
@@ -13,7 +13,6 @@ function LobbySettings() {
     const {chosenTopics, setChosenTopics} = useContext(chosenTopicsContext);
     const {randomTopic, setRandomTopic} = useContext(randomTopicContext);
     const {lobbyTopics, numberOfQues, timeLimit, difficulty} = useContext(lobbyDetails);
-    
 
     const handleTopicClick = (topic) => {
         if (randomTopic){
@@ -59,13 +58,15 @@ function LobbySettings() {
 
             <div className={styles.topicTextRandomButtonContainer}>
                 <p>Topics</p>
-                <button 
-                onClick={handleRandomChange} 
-                className={randomTopic ? styles.randomOn : styles.randomOff}> 
-                    <div className={styles.randomButtonContent}>
-                        <Shuffle className={styles.randomIcon}/> Random 
-                    </div>
-                </button>
+                <label className={styles.randomToggle}>
+                    <input
+                        type="checkbox"
+                        checked={randomTopic}
+                        onChange={handleRandomChange}
+                    />
+                    <span className={styles.toggleText}>Random</span>
+                    <span className={styles.slider}></span>
+                </label>
             </div>
             
             <div className={styles.topicsList}>

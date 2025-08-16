@@ -15,24 +15,27 @@
 .clockIcon{
     width: 48px;
     height: 48px;
-    color: hsl(217, 90%, 45%);
+    color: hsl(265, 85%, 70%);
 }
 .heading{
     font-size: 2rem;
     font-weight: bold;
+    color: hsl(270, 20%, 95%);
 }
 .text{
     font-size: 1rem;
     text-align: center;
+    color: hsl(270, 10%, 75%);
 }
 .threeDots{
     display: flex;
     gap: 5px;
+    margin-top: 0.5rem; 
 }
 .dotOne, .dotTwo, .dotThree{
     width: 8px;
     height: 8px;
-    background-color: hsl(217, 90%, 45%);
+    background-color: hsl(265, 85%, 70%);
     border-radius: 4px;
     animation: shrink 1.4s ease-in-out infinite both;
 }
