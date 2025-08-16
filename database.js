@@ -29,18 +29,25 @@ async function addNewLobby(lobbyID, ownerId) {
     await pool.query(query, [lobbyID, ownerId]);
 }
 
-async function addUser(lobbyId, userId, name){
-    const query = 'insert into lobby_members(lobbyid, userid, name) values($1, $2, $3) on conflict (lobbyid, userid) do nothing';
+async function addUser(lobbyId, userId, name) {
+    const query = `
+        INSERT INTO lobby_members(lobbyid, userid, name) 
+        VALUES($1, $2, $3) 
+        ON CONFLICT (lobbyid, userid) 
+        DO UPDATE SET 
+            isActive = TRUE,
+            name = EXCLUDED.name;
+    `;
     await pool.query(query, [lobbyId, userId, name]);
-}
+};
 
 async function removeUser(userId, lobbyId) {
-    let query = 'delete from lobby_members where lobbyid = $1 and userid = $2;';
+    let query = 'UPDATE lobby_members SET isActive = FALSE WHERE lobbyid = $1 AND userid = $2;';
     await pool.query(query, [lobbyId, userId]);
 }
 
 async function getUsers(lobbyId){
-    let query = 'select name from lobby_members where lobbyid=$1;';
+    let query = 'SELECT name FROM lobby_members WHERE lobbyid = $1 AND isActive = TRUE;';
     const res = await pool.query(query, [lobbyId]);
     const users = [];
     for(const row of res.rows){
@@ -81,17 +88,10 @@ async function addQuestions(lobbyId, questions) {
 };
 
 async function getQuestions(lobbyId){
-    const query = 'select questionlink from questions where lobbyid = $1;';
+    const query = 'select questionlink, points from questions where lobbyid = $1;';
     const res = await pool.query(query, [lobbyId]);
     const data = res.rows;
-    const difficultyOrder = {
-        'Easy': 0,
-        'Medium': 1,
-        'Hard': 2
-    };
-    data.sort((a, b) => {
-        return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
-    });
+    data.sort((a, b) => a.points - b.points);  
 
     const questions = [];
     for (const row of data){
@@ -150,13 +150,16 @@ async function getLeaderboard(lobbyId){
         SELECT
             lm.name,
             SUM(q.points) AS total_points,
-            MAX(qs.submitTime) AS last_submission_time
+            MAX(qs.submitTime) AS last_submission_time,
+            MIN(l.starttime) AS start_time 
         FROM
             questions_solved AS qs
         JOIN 
             questions AS q ON qs.lobbyid = q.lobbyid AND qs.link = q.questionlink
         JOIN 
             lobby_members AS lm ON qs.userid = lm.userid AND qs.lobbyid = lm.lobbyid
+        JOIN 
+            lobby AS l ON qs.lobbyid = l.lobbyid
         WHERE
             qs.lobbyid = $1
         GROUP BY
