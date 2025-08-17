@@ -70,7 +70,7 @@ function Lobby() {
 
         socket.on('userJoined', ({ name }) => {
             setMessages((prev) => [...prev, {
-                type: 'system', name: name, timeStamp: new Date()
+                type: 'systemJoin', name: name, timeStamp: new Date()
             }]);
         });
 
@@ -81,6 +81,12 @@ function Lobby() {
         });
         
         socket.on('leaderboard-updated', fetchLeaderboard);
+
+        socket.on('leaveLobby', ({ name }) =>{
+             setMessages((prev) => [...prev, {
+                type: 'systemLeave', name: name, timeStamp: new Date()
+            }]);
+        });
 
         return () => {
             socket.disconnect();

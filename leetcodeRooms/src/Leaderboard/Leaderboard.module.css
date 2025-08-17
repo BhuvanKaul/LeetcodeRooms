@@ -1,5 +1,21 @@
 .leaderboardContainer {
     animation: fadeIn 0.5s ease-out;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+.leaderboardContainer::-webkit-scrollbar {
+    width: 8px;
+}
+.leaderboardContainer::-webkit-scrollbar-track {
+    background: transparent;
+}
+.leaderboardContainer::-webkit-scrollbar-thumb {
+    background-color: hsl(265, 85%, 70%);
+    border-radius: 1.5rem;
+}
+.leaderboardContainer::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(265, 90%, 75%);
 }
 
 .emptyState {

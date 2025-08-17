@@ -38,12 +38,18 @@ function ChatRoom({ messages, sendMessage }) {
         <div className={styles.chatContainer}> 
             <div className={styles.messages} ref={messagesRef}>
                 {messages.map((msg, index) => {
-                    if (msg.type === 'system'){
+                    if (msg.type === 'systemJoin'){
                         return (
                             <div key={index} className={styles.systemMessage}>
-                                <strong>{msg.name}</strong> joined the lobby.
+                                <strong>{msg.name}</strong> joined the lobby
                             </div>
                         );
+                    } else if (msg.type === 'systemLeave'){
+                        return (
+                            <div key={index} className={styles.systemMessage}>
+                                <strong>{msg.name}</strong> left the lobby
+                            </div>
+                        )
                     }
 
                     return(
