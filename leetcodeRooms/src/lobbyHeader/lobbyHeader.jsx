@@ -15,7 +15,6 @@ function LobbyHeader() {
     const timeLimitRef = useContext(timeLimitContext)
 
     const startMatch = () =>{
-        
         setSendData(true);
     }
 

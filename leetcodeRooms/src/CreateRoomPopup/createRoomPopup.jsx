@@ -21,6 +21,7 @@ function CreateRoomPopup(props){
     const [nameError, setNameError] = useState(false);
     const [showEmptyNameError, setShowEmptyNameError] = useState(false);
     const [showLongNameError, setShowLongNameError] = useState(false);
+    const [creatingLobby, setCreatingLobby] = useState(false);
 
     const handleCancelButton = () => {
         setShowPopup(false);
@@ -54,6 +55,7 @@ function CreateRoomPopup(props){
     }, [nameError]);
 
     const handleCreateLobby = async() => {
+        setCreatingLobby(true);
         let userId = localStorage.getItem('userId');
         if (!userId){
             userId = uuidv4();
@@ -65,11 +67,13 @@ function CreateRoomPopup(props){
             setNameError(true);
             setShowLongNameError(false);
             setShowEmptyNameError(true);
+            setCreatingLobby(false);
             return;
         } else if(name.length > 20){
             setNameError(true);
             setShowLongNameError(true);
             setShowEmptyNameError(false);
+            setCreatingLobby(false);
             return;
         }
         localStorage.setItem('name', name);
@@ -90,11 +94,13 @@ function CreateRoomPopup(props){
             }
             const data = await response.json();
             const createdLobbyId = data.lobbyId;
-
+            
             navigate(`/lobbies/${createdLobbyId}`);
         
         }catch(err){
             setShowCreateLobbyError(true);
+        } finally{
+            setCreatingLobby(false);
         }
     };
 
@@ -174,7 +180,16 @@ function CreateRoomPopup(props){
                         <button onClick={handleCancelButton}>Cancel</button>
                     </div>
                     <div className={styles.createButtonContainer}>
-                        <button onClick={handleCreateLobby}>Create Lobby</button>
+                        <button onClick={handleCreateLobby} disabled={creatingLobby}>
+                            {creatingLobby ? 
+                                <div className={styles.loaderForCreateButton}>
+                                    <div className={`${styles.dot} ${styles.dotOne}`}></div>
+                                    <div className={`${styles.dot} ${styles.dotTwo}`}></div>
+                                    <div className={`${styles.dot} ${styles.dotThree}`}></div>
+                                </div>
+
+                                :"Create Lobby"}
+                        </button>
                     </div>
                 </div>
             </div>

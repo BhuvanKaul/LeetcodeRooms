@@ -20,6 +20,28 @@ function Questions() {
     const [showQuestions, setShowQuestions] = useState(true);
     const [showLeaderboard, setShowLeaderboard] = useState(false);
     const [submittingQuestion, setSubmittingQuestion] = useState(null);
+    const [showWrongQuestionError, setShowWrongQuestionError] = useState(false);
+    const [showBadUsernameError, setShowBadUsernameError] = useState(false);
+
+    useEffect(() => {
+        if (showWrongQuestionError) {
+            const timer = setTimeout(() => {
+                setShowWrongQuestionError(false);
+            }, 4000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [showWrongQuestionError]);
+
+    useEffect(() => {
+        if (showBadUsernameError) {
+            const timer = setTimeout(() => {
+                setShowBadUsernameError(false);
+            }, 4000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [showBadUsernameError]);
 
     useEffect(()=>{
         const getSolvedQuestions = async ()=>{
@@ -76,11 +98,11 @@ function Questions() {
                     socketRef.current.emit('new-submission', {lobbyId});
                 }
             } else{
-                console.log('Wrong Question');
+                setShowWrongQuestionError(true);
                 setSubmittingQuestion(null);
             }   
         } catch(err){
-            console.log('Bad UserName');
+            setShowBadUsernameError(true);
             setSubmittingQuestion(null);
         }
     }
@@ -97,6 +119,18 @@ function Questions() {
 
     return (
         <div className={styles.mainContainer}>
+
+            {showWrongQuestionError && (
+                <div className="errorMessage">
+                    Incorrect question submitted. Please solve the correct one.
+                </div>
+            )}
+
+            {showBadUsernameError && (
+                <div className="errorMessage">
+                    No such User found! Enter your leetcode username carefully.
+                </div>
+            )}
 
             <div className={styles.questionLeaderboardChoice}>
                 <div onClick={handleShowQuestions} className={showQuestions ? styles.activeTab : ''}> 
@@ -151,7 +185,7 @@ function Questions() {
                                     <button
                                         className={styles.submitButton}
                                         onClick={() => handleSubmitQuestion(question)}
-                                        disabled={submittingQuestion === question}
+                                        disabled={submittingQuestion}
                                     >
                                         {submittingQuestion === question ? (
                                             <div className={styles.loader}></div>
