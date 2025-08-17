@@ -3,7 +3,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, 
         getOwner, addLobbyDetails, addQuestions, getQuestions, isStarted, 
-        getStartTime, getTimeLimit, getSolvedQuestions, addSubmittedQuestion, getLeaderboard, generateQuestions} from './database.js';
+        getStartTime, getTimeLimit, getSolvedQuestions, addSubmittedQuestion, 
+        getLeaderboard, generateQuestions  } from './database.js';
 import { makeLobbyID, getLastSubmission } from './backend_logic.js';
 import dotenv from 'dotenv';
 import http from 'http';
@@ -69,30 +70,20 @@ app.post('/lobbies/:lobbyId/join', async(req, res)=>{
     try{
         const activeLobbies = await getActiveLobbies()
         if (!activeLobbies.has(lobbyId)){
-            return res.status(400).json({lobbyExists: false})
+            return res.status(400).json({ message: "lobby does not exist" })
         }
         await addUser(lobbyId, userId, name);
-        res.status(201).json({lobbyExists: true})
+
+        const ownerId = await getOwner(lobbyId);
+        const start = await isStarted(lobbyId);
+
+        res.status(201).json({ ownerId, start })
     } catch(err){
         console.log("ERROR IN ADDING USER TO DB: ", err);
-        res.status(503).json({lobbyExists: true});
+        res.status(503).json({message: "Failed to join lobby"});
     }
 });
 
-app.get('/lobbies/:lobbyId/owner', async(req, res)=>{
-    const lobbyId = req.params.lobbyId;
-    try{
-        const ownerId = await getOwner(lobbyId);
-        if (ownerId.length === 0){
-            res.status(400).json({ message: `Lobby with ID ${lobbyId} not found.` });
-        }
-        res.status(200).json({ownerId: ownerId[0].ownerid})
-    } catch(err){
-        res.status(503).json({ message: 'Service unavailable or internal server error.' });
-    }
-});
-
- 
 app.post('/lobbies/:lobbyId/info', async(req, res)=>{
     const lobbyId = req.params.lobbyId;
     const lobbyTopics = req.body.lobbyTopics;
@@ -123,16 +114,6 @@ app.get('/lobbies/:lobbyId/info', async(req, res)=>{
         res.status(503).end();
     }
 });
-
-app.get('/lobbies/:lobbyId/start', async(req, res)=>{
-    const lobbyId = req.params.lobbyId;
-    try{
-        const start = await isStarted(lobbyId);
-        res.status(200).json({start: start});
-    } catch(err) {
-        res.status(503).json({start: null});
-    }
-})
 
 app.get('/lobbies/:lobbyId/solvedQuestions', async(req, res)=>{
     const lobbyId = req.params.lobbyId;

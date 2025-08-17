@@ -59,7 +59,7 @@ async function getUsers(lobbyId){
 async function getOwner(lobbyId) {
     let query = 'select ownerid from lobby where lobbyid = $1;';
     const res = await pool.query(query, [lobbyId]);
-    return res.rows;
+    return res.rows[0].ownerid;
 }
 
 async function addLobbyDetails(lobbyId, timeLimit){
