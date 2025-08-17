@@ -25,7 +25,10 @@ const io = new Server(server, {
         methods: ["GET", "POST"]
     }
 });
+
 const socketToUser = new Map();
+const reconnectGracePeriod = 3000;
+const disconnectTimers = new Map();
 
 app.use(express.json());
 app.use(express.static('public'));
@@ -166,11 +169,17 @@ app.get('/lobbies/:lobbyId/leaderboard', async(req, res)=>{
 io.on("connection", (socket) =>{
     
     socket.on("joinLobby", async({lobbyId, userId, name}) => {
+        if (disconnectTimers.has(userId)){
+            clearTimeout(disconnectTimers.get(userId));
+            disconnectTimers.delete(userId);
+        } else{
+            io.to(lobbyId).emit('userJoined', {name});
+        }
+
         socket.join(lobbyId);
-        socketToUser.set(socket.id, {userId, lobbyId, name});
-        io.to(lobbyId).emit('userJoined', {name});
         const users =  await getUsers(lobbyId);
-        io.to(lobbyId).emit('participantsUpdate', {users})
+        io.to(lobbyId).emit('participantsUpdate', {users});
+        socketToUser.set(socket.id, {userId, lobbyId, name});
     });
 
     socket.on("chatMsg", ({lobbyId, name, message}) =>{
@@ -184,19 +193,27 @@ io.on("connection", (socket) =>{
     socket.on("disconnect", async ()=>{
         const info = socketToUser.get(socket.id);
         if (info){
-            const {userId, lobbyId, _ } = info;
-            await removeUser(userId, lobbyId);
+            const {userId, lobbyId, name } = info;
+
+            const timerId = setTimeout(async()=>{
+                await removeUser(userId, lobbyId);
+                const users = await getUsers(lobbyId);
+                io.to(lobbyId).emit("leaveLobby", {name});
+                io.to(lobbyId).emit('participantsUpdate', {users});
+
+                disconnectTimers.delete(userId);
+            }, reconnectGracePeriod)
+
+            disconnectTimers.set(userId, timerId);
             socketToUser.delete(socket.id);
-            const users = await getUsers(lobbyId);
-            io.to(lobbyId).emit('participantsUpdate', {users})
         }
     });
 
     socket.on('new-submission', ({lobbyId})=>{
         io.to(lobbyId).emit('leaderboard-updated');
-    })
+    });
 
-})
+});
 
 
 server.listen(port, () => {

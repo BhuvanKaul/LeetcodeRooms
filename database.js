@@ -174,7 +174,7 @@ async function getLeaderboard(lobbyId){
 };
 
 async function fetchRandomQuestionsFromDB(topics, difficulty){
-    if (topics === 'random'){
+    if (topics === 'random' || topics.length === 0){
         const query = 'select title_slug, difficulty from leetcode_questions where difficulty = $1;';
         try{
             const res = await pool.query(query, [difficulty]);
