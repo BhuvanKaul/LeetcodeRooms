@@ -6,14 +6,17 @@ import { io } from 'socket.io-client';
 import { 
     participantsContext, chosenTopicsContext, randomTopicContext, ownerIdContext, 
     userIdContext, competitionStarted, leaderboardContext, 
-    lobbyIdContext, nameContext, socketContext, lobbyInitializationContext
-} from "../Contexts.js";
+    lobbyIdContext, nameContext, socketContext, lobbyInitializationContext, lobbyOverContext,
+    showLobbyOverPopupContext } from "../Contexts.js";
 import Participants from '../Participants/Participants.jsx';
 import LobbySettings from "../lobbySettings/LobbySettings.jsx";
 import NotOwner from "../NotOwner/NotOwner.jsx";
 import Questions from "../Questions/Questions.jsx";
+import LobbyOverPopup from "../LobbyOverPopup/LobbyOverPopup.jsx";
+import { replace, useNavigate } from "react-router-dom";
 
 function Lobby() {
+    const navigate = useNavigate();
     const [participants, setParticipants] = useState([]);
     const [chosenTopics, setChosenTopics] = useState([]);
     const [started, setStarted] = useContext(competitionStarted);
@@ -25,8 +28,10 @@ function Lobby() {
     const isOwner = ownerId?.trim() === userId?.trim();
     const [leaderboard, setLeaderboard] = useState([]);
     const socketRef = useRef(null);
-    const [messages, setMessages] = useState([]);
+    const [messages, setMessages] = useState([ { type: 'systemJoin', name: "You", timeStamp: new Date() } ]);
     const isInitialized = useContext(lobbyInitializationContext);
+    const [lobbyOver, setLobbyOver] = useContext(lobbyOverContext);
+    const [showLobbyOverPopup, setShowLobbyOverPopup] = useState(true);
 
     const participantsVal = useMemo(()=> ({ participants, setParticipants }), [participants]);
     const chosenTopicsVal = useMemo(() => ({ chosenTopics, setChosenTopics }), [chosenTopics]);
@@ -56,6 +61,10 @@ function Lobby() {
         const socket = io(serverIP);
         socketRef.current = socket;
 
+        socket.on('connect', ()=>{
+            console.log('socket id is ', socket.id);
+        })
+
         if (lobbyId && userId && name) {
             socket.emit('joinLobby', { lobbyId, userId, name });
         }
@@ -74,9 +83,9 @@ function Lobby() {
             }]);
         });
 
-        socket.on('chatMsg', ({ name, message }) => {    
+        socket.on('chatMsg', ({ name, message, userId }) => {    
             setMessages((prev) => [...prev, {
-                type: 'chat', name: name, timeStamp: new Date(), message: message
+                type: 'chat', name: name, timeStamp: new Date(), message: message, userId: userId
             }]);
         });
         
@@ -87,6 +96,11 @@ function Lobby() {
                 type: 'systemLeave', name: name, timeStamp: new Date()
             }]);
         });
+
+        socket.on('lobby-deletion', ()=>{
+            navigate('/', {replace: true});
+            socket.disconnect();
+        })
 
         return () => {
             socket.disconnect();
@@ -101,11 +115,18 @@ function Lobby() {
 
     const sendMessage = useCallback((message) => {
         if (message.trim() === '' || !socketRef.current) return;
-        socketRef.current.emit('chatMsg', { lobbyId, name, message });
-    }, [lobbyId, name]);
+        socketRef.current.emit('chatMsg', { lobbyId, name, message, userId });
+    }, [lobbyId, name, userId]);
 
     return (
         <div className={styles.lobbyContainer}>
+
+            {lobbyOver && showLobbyOverPopup &&
+                <showLobbyOverPopupContext.Provider value={[showLobbyOverPopup, setShowLobbyOverPopup]}>
+                    <LobbyOverPopup />
+                </showLobbyOverPopupContext.Provider>
+            }
+
             <LobbyHeader/>
             <div className={styles.mainContainer}>
                 { !started && 

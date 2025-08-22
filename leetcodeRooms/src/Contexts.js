@@ -16,3 +16,5 @@ export const timeLimitContext = createContext();
 export const leaderboardContext = createContext();
 export const socketContext = createContext();
 export const lobbyInitializationContext = createContext();
+export const lobbyOverContext = createContext();
+export const showLobbyOverPopupContext = createContext();

@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useContext } from 'react';
 import styles from './ChatRoom.module.css';
-import { nameContext } from '../Contexts.js'; 
+import { nameContext, userIdContext } from '../Contexts.js'; 
 import { Send } from 'lucide-react';
 
 const formatTimeStamp = (date) => {
@@ -13,6 +13,7 @@ const formatTimeStamp = (date) => {
 function ChatRoom({ messages, sendMessage }) { 
     const messageInputRef = useRef(null);
     const name = useContext(nameContext);
+    const userId = useContext(userIdContext)
     const messagesRef = useRef(null);
 
     useEffect(() => {
@@ -53,10 +54,10 @@ function ChatRoom({ messages, sendMessage }) {
                     }
 
                     return(
-                        <div key={index} className={styles.messageEntry} data-isme={msg.name === name ? 'true' : 'false'}>
+                        <div key={index} className={styles.messageEntry} data-isme={msg.userId === userId ? 'true' : 'false'}>
                             <div className={styles.messageHeader}>
                                 <span className={styles.senderName}>
-                                    {msg.name === name ? 'You' : msg.name}
+                                    {msg.userId === userId ? 'You' : msg.name}
                                 </span>
                                 <span className={styles.timeStamp}>
                                     {formatTimeStamp(msg.timeStamp)}

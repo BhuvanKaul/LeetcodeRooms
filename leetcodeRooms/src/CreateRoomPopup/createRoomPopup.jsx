@@ -1,5 +1,5 @@
 import styles from './createRoomPopup.module.css'
-import {Users, Lock} from 'lucide-react';
+import {Users, Lock, Eye, EyeOff } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
@@ -18,10 +18,12 @@ function CreateRoomPopup(props){
     const [lobbyType, setLobbyType] = useState('public');
     const popupContainerRef = useRef(null);
     const nameRef = useRef(null);
+    const passwordRef = useRef(null);
     const [nameError, setNameError] = useState(false);
     const [showEmptyNameError, setShowEmptyNameError] = useState(false);
     const [showLongNameError, setShowLongNameError] = useState(false);
     const [creatingLobby, setCreatingLobby] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleCancelButton = () => {
         setShowPopup(false);
@@ -61,7 +63,11 @@ function CreateRoomPopup(props){
             userId = uuidv4();
             localStorage.setItem('userId', userId);
         }
-        
+
+        if (!nameRef.current || (lobbyType === 'private' && !passwordRef.current)){
+            setCreatingLobby(false);
+            return;
+        }
         const name = nameRef.current.value.trim();
         if (name === ''){
             setNameError(true);
@@ -80,15 +86,17 @@ function CreateRoomPopup(props){
 
         try{
             const response = await fetch(`${serverIP}/lobbies`, {
-                method: 'post',
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    userId: userId
-                })
+                    userId: userId,
+                    lobbyType: lobbyType,
+                    password: passwordRef.current ? passwordRef.current.value : null
+                }),
+                credentials: 'include'
             })
-
             if (!response.ok){
                 throw new Error(`BAD HTTP STATUS: ${response.status}`);
             }
@@ -172,7 +180,18 @@ function CreateRoomPopup(props){
                     
                 {lobbyType === 'private' && <div className={styles.passwordContainer}>
                     <h4>Password</h4>
-                    <input className={styles.passwordInput} type='password' placeholder='Enter Password...'></input>
+                    <div className={styles.passwordInputContainer}>
+                            <input  className={styles.passwordInput} 
+                                    type = {showPassword ? 'text': 'password'}
+                                    placeholder='Enter Password...' 
+                                    ref={passwordRef}/>
+                            <button type="button"
+                                    className={styles.togglePasswordButton}
+                                    onClick={() => {setShowPassword(prvs => !prvs)}}>
+                                
+                                {showPassword ? <EyeOff /> : <Eye />}
+                            </button>
+                    </div>
                 </div>}
 
                 <div className={styles.buttonContainer}>

@@ -1,11 +1,10 @@
 import React, { useEffect, useContext, useState, useRef } from 'react';
-import { questionsContext, lobbyIdContext, userIdContext, socketContext} from '../Contexts';
+import { questionsContext, lobbyIdContext, userIdContext, socketContext, lobbyOverContext} from '../Contexts';
 import styles from './Questions.module.css';
 import { CircleQuestionMark } from 'lucide-react';
-import submissionGuideImage from '../assets/submissionGuide.jpeg';
+import submissionGuideImage from '../assets/submissionGuide.webp';
 import { Check } from 'lucide-react';
 import Leaderboard from '../Leaderboard/Leaderboard';
-import { ListTodo, Trophy } from 'lucide-react';
 import { FaTasks, FaTrophy } from 'react-icons/fa';
 
 function Questions() {
@@ -19,9 +18,10 @@ function Questions() {
     const socketRef = useContext(socketContext);
     const [showQuestions, setShowQuestions] = useState(true);
     const [showLeaderboard, setShowLeaderboard] = useState(false);
-    const [submittingQuestion, setSubmittingQuestion] = useState(null);
+    const [submittingQuestion, setSubmittingQuestion] = useState([]);
     const [showWrongQuestionError, setShowWrongQuestionError] = useState(false);
     const [showBadUsernameError, setShowBadUsernameError] = useState(false);
+    const [lobbyOver, setLobbyOver] = useContext(lobbyOverContext);
 
     useEffect(() => {
         if (showWrongQuestionError) {
@@ -67,21 +67,21 @@ function Questions() {
 
     const handleSubmitQuestion = async(question) => {
         const leetcodeUsername = leetcodeUsernameRef.current;
-        setSubmittingQuestion(question);
+        setSubmittingQuestion(prvs => [...prvs, question]);
         
         try{
             if (!leetcodeUsername){
                 throw Error('No Username');
             }
-            const res = await fetch(`${serverIP}/lastSubmission?userName=${leetcodeUsername}`);
+            const res = await fetch(`${serverIP}/latestSubmission?userName=${leetcodeUsername}`);
             if (!res.ok){
                 throw Error('Bad Username');
             }
 
             const data = await res.json()
-            const lastQuestion = data.lastQuestion;
+            const latestQuestion = data.latestQuestion;
 
-            if (lastQuestion === question){
+            if (latestQuestion.includes(question)){
 
                 const res = await fetch(`${serverIP}/lobbies/${lobbyId}/submit`, {
                     method: 'POST',
@@ -92,18 +92,18 @@ function Questions() {
                 if (!res.ok){
                     throw Error('Server Error');
                 }
-                setSolvedQuestions([...solvedQuestions, question]);
+                setSolvedQuestions(prvs => [...prvs, question]);
                 
                 if (socketRef.current){
                     socketRef.current.emit('new-submission', {lobbyId});
                 }
             } else{
                 setShowWrongQuestionError(true);
-                setSubmittingQuestion(null);
             }   
         } catch(err){
             setShowBadUsernameError(true);
-            setSubmittingQuestion(null);
+        } finally{
+            setSubmittingQuestion(prvs => prvs.filter(q => q !== question));
         }
     }
 
@@ -122,13 +122,13 @@ function Questions() {
 
             {showWrongQuestionError && (
                 <div className="errorMessage">
-                    Incorrect question submitted. Please solve the correct one.
+                    Incorrect question submitted. Please submit the correct one.
                 </div>
             )}
 
             {showBadUsernameError && (
                 <div className="errorMessage">
-                    No such User found! Enter your leetcode username carefully.
+                    No such user found! Enter your leetcode username carefully.
                 </div>
             )}
 
@@ -160,16 +160,19 @@ function Questions() {
                         </div>
 
                         <div className={styles.submitHelper}>
-                            <p>
-                                To submit a question, firstly enter the Leetcode username of the
-                                account you are using, then solve the question on Leetcode itself and submit it there. 
-                                When your solution is accepted, submit the question on LeetRooms. 
-                                Make sure the question you are submitting appears on top of 
-                                your Recent Submission list as shown in the image. 
-                                <br />
-                                <i>If you have already solved the question, 
-                                submit again on Leetcode so the question appears on top of you recent submission list.</i>
-                            </p>
+                            <ol>
+                                <li>Enter Leetcode Username</li>
+                                <li>Solve and submit the question on leetcodes</li>
+                                <li>Submit on LeetRooms</li>
+                            </ol>
+                            <i>
+                                <p className={styles.margin_bottom}>Please make sure that the submission is within your 3 most recent submissions  </p>   
+                                <p>
+                                    If question is already solve, submit again so it appears on top of your
+                                    recent submissions.
+                                </p>                           
+
+                            </i>
                             <img src={submissionGuideImage} className={styles.image}/>
                         </div>
                     </div>
@@ -185,9 +188,9 @@ function Questions() {
                                     <button
                                         className={styles.submitButton}
                                         onClick={() => handleSubmitQuestion(question)}
-                                        disabled={submittingQuestion}
+                                        disabled={lobbyOver || submittingQuestion.includes(question)}
                                     >
-                                        {submittingQuestion === question ? (
+                                        {submittingQuestion.includes(question) ? (
                                             <div className={styles.loader}></div>
                                         ) : (
                                             'Submit'

@@ -3,8 +3,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { useParams, useNavigate } from 'react-router-dom';
 import Lobby from '../lobby/lobby.jsx';
 import { lobbyIdContext, userIdContext, nameContext, ownerIdContext, competitionStarted, lobbyDetails, 
-        questionsContext, sendDataContext, startTimeContext, timeLimitContext, lobbyInitializationContext } from '../Contexts.js';
+        questionsContext, sendDataContext, startTimeContext, timeLimitContext, lobbyInitializationContext,
+        lobbyOverContext } from '../Contexts.js';
 import LoadingScreen from '../LoadingScreen/LoadingScreen.jsx';
+import { useLocation } from 'react-router-dom';
 
 function Room() {
     const serverIP = import.meta.env.VITE_SERVER_IP;
@@ -20,6 +22,9 @@ function Room() {
     const timeLimitRef = useRef(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const [showStartError, setShowStartError] = useState(false);
+    const [lobbyOver, setLobbyOver] = useState(false);
+    const location = useLocation();
+    const token = location.state?.token;
 
     const lobbyTopics = useRef('random');
     const numberOfQues = useRef(4);
@@ -28,25 +33,28 @@ function Room() {
 
     const name = localStorage.getItem('name') || 'Smarty Pants';
 
-        useEffect(() => {
-            if (showStartError) {
-                const timer = setTimeout(() => {
-                    setShowStartError(false);
-                }, 4000); // Hide after 4 seconds
+    useEffect(() => {
+        if (showStartError) {
+            const timer = setTimeout(() => {
+                setShowStartError(false);
+            }, 4000);
 
-                return () => clearTimeout(timer);
-            }
-        }, [showStartError]);
+            return () => clearTimeout(timer);
+        }
+    }, [showStartError]);
 
     useEffect(() => {
         const initializeLobby = async () => {
             try {
                 const joinRes = await fetch(`${serverIP}/lobbies/${lobbyId}/join`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId, name })
+                    headers: { 'Content-Type': 'application/json',
+                                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                     },
+                    body: JSON.stringify({ userId, name }),
+                    credentials: 'include'
                 });
-
+                
                 if (!joinRes.ok) {
                     throw new Error('Could not join lobby. It may not exist or is full.');
                 }
@@ -57,7 +65,6 @@ function Room() {
                 setIsInitialized(true);
 
             } catch (error) {
-                console.error('Failed to initialize lobby:', error.message);
                 navigate('/', {
                     replace: true,
                     state:{
@@ -144,7 +151,9 @@ useEffect(()=>{
             <startTimeContext.Provider value={startTimeRef}>
             <timeLimitContext.Provider value={timeLimitRef}>
             <lobbyInitializationContext.Provider value={isInitialized}>
+            <lobbyOverContext.Provider value={[lobbyOver, setLobbyOver]}>
                 {isInitialized? <Lobby /> : <LoadingScreen text="Joining Lobby ..." />}
+            </lobbyOverContext.Provider>
             </lobbyInitializationContext.Provider>
             </timeLimitContext.Provider>
             </startTimeContext.Provider>

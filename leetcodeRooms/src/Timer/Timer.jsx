@@ -1,25 +1,27 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useContext } from "react";
 import styles from './Timer.module.css';
+import { startTimeContext, timeLimitContext, lobbyOverContext } from  '../Contexts';
 
 const padWithZero = (num) => num.toString().padStart(2, '0');
 
-function Timer(props) {
+function Timer() {
+    const startTimeRef = useContext(startTimeContext);
+    const timeLimitRef = useContext(timeLimitContext);
     const timerRef = useRef(null);
-    const startTime = props.startTime;
-    const timeLimit = props.timeLimit;
     const [timeLeft, setTimeLeft] = useState({
         hours: '00',
         minutes: '00',
         seconds: '00',
     });
+    const [lobbyOver, setLobbyOver] = useContext(lobbyOverContext);
 
     useEffect(() => {
-        if (!startTime || !timeLimit) {
+        if (!startTimeRef.current || !timeLimitRef.current) {
         return;
         }
 
-        const startDateTime = new Date(startTime);
-        const endTime = new Date(startDateTime.getTime() + timeLimit * 60 * 1000);
+        const startDateTime = new Date(startTimeRef.current);
+        const endTime = new Date(startDateTime.getTime() + timeLimitRef.current * 60 * 1000);
 
         const updateTimer = () => {
             const now = new Date();
@@ -27,6 +29,7 @@ function Timer(props) {
 
             if (difference <= 0) {
                 setTimeLeft({ hours: '00', minutes: '00', seconds: '00' });
+                setLobbyOver(true);
                 return false;
             }
 
@@ -55,7 +58,7 @@ function Timer(props) {
         clearInterval(intervalId);
         };
         
-    }, [startTime, timeLimit]);
+    }, [startTimeRef.current, timeLimitRef.current]);
 
     return (
         <div ref={timerRef} className={`${styles.timerContainer} ${timeLeft.hours === '00' && timeLeft.minutes < '10' ? styles.lowTime: ''}`}>

@@ -20,14 +20,14 @@
     width: 100%;
     background-color: hsl(270, 8%, 15%);
     border: 1px solid hsl(270, 8%, 25%);
-    border-radius: 1.5rem;
+    border-radius: 1rem;
     padding: 1.5rem;
     min-height: 0;
     overflow-y: auto;
     box-sizing: border-box;
-}
-.lobbyInfo::-webkit-scrollbar {
-    display: none;
+
+    scrollbar-width: thin;
+    scrollbar-color: hsl(265, 85%, 70%) transparent;
 }
 
 .chatContainer{

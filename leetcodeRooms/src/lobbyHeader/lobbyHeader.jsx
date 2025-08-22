@@ -1,8 +1,11 @@
 import styles from './lobbyHeader.module.css';
 import { Play } from 'lucide-react';
 import { useContext } from 'react';
-import { lobbyIdContext, sendDataContext, competitionStarted, ownerIdContext, userIdContext, startTimeContext, timeLimitContext } from '../Contexts';
+import {    lobbyIdContext, sendDataContext, competitionStarted, ownerIdContext, userIdContext,
+            startTimeContext, timeLimitContext, lobbyOverContext   
+         } from '../Contexts';
 import Timer from '../Timer/Timer';
+import DeletionTimer from '../DeletionTimer/DeletionTimer';
 
 function LobbyHeader() {
     const [sendData, setSendData] = useContext(sendDataContext);
@@ -11,8 +14,13 @@ function LobbyHeader() {
     const userId = useContext(userIdContext);
     const ownerId = useContext(ownerIdContext);
     const isOwner = ownerId?.trim() === userId?.trim();
+
     const startTimeRef = useContext(startTimeContext);
-    const timeLimitRef = useContext(timeLimitContext)
+    const timeLimitRef = useContext(timeLimitContext);
+    const [lobbyOver, setLobbyOver] = useContext(lobbyOverContext);
+
+    const competitionEndTime = startTimeRef.current && timeLimitRef.current ? 
+                                new Date(new Date(startTimeRef.current).getTime() + timeLimitRef.current * 60 *1000) : null;
 
     const startMatch = () =>{
         setSendData(true);
@@ -32,9 +40,15 @@ function LobbyHeader() {
                         {sendData ? 'Starting...' : 'Start Competition'}
                     </button>
                 }
-                {started &&
-                    <Timer startTime={startTimeRef.current} timeLimit={timeLimitRef.current}/>
-                }
+
+                {started && (
+                    !lobbyOver ? (
+                        <Timer />
+                    ) : (
+                        <DeletionTimer competitionEndTime={competitionEndTime}/>
+                    )
+                )}
+                
             </div>
         </div>
     )

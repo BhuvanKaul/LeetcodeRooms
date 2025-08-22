@@ -60,7 +60,7 @@ function Home(){
         <div className="main-container">
             
             {showJoinLobbyError && 
-            <div className="errorMessage">Invalid Lobby ID</div>
+            <div className="errorMessage">Invalid / Private Lobby ID</div>
             }
 
             {showCreateLobbyError && 
