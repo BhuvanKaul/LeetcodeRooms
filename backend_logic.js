@@ -34,7 +34,7 @@ query problemsetQuestionList($categorySlug: String, $limit: Int, $skip: Int, $fi
   }
 }`;
 
-const getLastSubmissionQuery = `
+const getLatestSubmissionQuery = `
 query 
 recentAcSubmissions($username: String!, $limit: Int!) {
     recentAcSubmissionList(username: $username, limit: $limit) {   
@@ -51,24 +51,26 @@ const headers = {
     "Accept-Encoding": "identity"
 }
 
-async function getLastSubmission(userName){
+async function getLatestSubmission(userName){
     const body = {
-        query: getLastSubmissionQuery,
+        query: getLatestSubmissionQuery,
         variables:{
             username: userName,
-            limit: 1
+            limit: 3
         }
     }
     try{
         const res = await fetch(url, {method: 'POST', headers: headers, body: JSON.stringify(body)})
         const data = await res.json()
-        return 'https://leetcode.com/problems/' + data.data.recentAcSubmissionList[0].titleSlug;
+        const submittedQuestions = data.data.recentAcSubmissionList;
+        const latestQuestions = [];
+        for (const question of submittedQuestions){
+            latestQuestions.push('https://leetcode.com/problems/' + question.titleSlug);
+        }
+        return latestQuestions;
     } catch(err){
         throw Error('Bad Username');
     }
 };
 
-
-
-
-export { makeLobbyID, getLastSubmission };
+export { makeLobbyID, getLatestSubmission };

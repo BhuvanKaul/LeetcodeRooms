@@ -1,15 +1,20 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, 
+import {getActiveLobbies, addNewPublicLobby, addUser, removeUser, getUsers, 
         getOwner, addLobbyDetails, addQuestions, getQuestions, isStarted, 
-        getStartTime, getTimeLimit, getSolvedQuestions, addSubmittedQuestion, 
-        getLeaderboard, generateQuestions  } from './database.js';
-import { makeLobbyID, getLastSubmission } from './backend_logic.js';
+        getStartTime, getTimeLimit, getSolvedQuestions, addSubmittedQuestion, getLeaderboard, 
+        generateQuestions, addNewPrivateLobby, getLobbyType, getPassword, getLobbyCreateStartTime } from './database.js';
+import { makeLobbyID, getLatestSubmission } from './backend_logic.js';
 import dotenv from 'dotenv';
 import http from 'http';
 import {Server} from 'socket.io';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+import { startCleanupService } from './services/lobbyCleanupService.js';
+
 
 dotenv.config();
 
@@ -21,7 +26,10 @@ const port = 3000;
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "*",
+        origin: [
+            "http://localhost:5173",
+            "http://192.168.1.55:5173"
+        ],
         methods: ["GET", "POST"]
     }
 });
@@ -29,14 +37,24 @@ const io = new Server(server, {
 const socketToUser = new Map();
 const reconnectGracePeriod = 3000;
 const disconnectTimers = new Map();
+const JWTSecretKey = process.env.JWT_SECRET_KEY;
 
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.static('public'));
-app.use(cors());
+app.use(cors({
+    origin: [
+            "http://localhost:5173",
+            "http://192.168.1.55:5173"
+    ],
+    credentials: true
+}));
 
 
 app.post('/lobbies', async (req, res)=> {
     const ownerId = req.body.userId;
+    const lobbyType = req.body.lobbyType;
+    const password = req.body.password;
     if (!ownerId){
         return res.status(400).json({lobbyId: -1, ownerId: false});
     }
@@ -55,13 +73,26 @@ app.post('/lobbies', async (req, res)=> {
         if (retry >= maxRetry){
             return res.status(503).json({lobbyId: -1, ownerId:true, connectionSuccess: true});
         }
+        if(lobbyType === 'private'){
+            await addNewPrivateLobby(requestedLobby, ownerId, password);
 
-        await addNewLobby(requestedLobby, ownerId);
+            const payload = {lobbyId: requestedLobby};
+            const jwtToken = jwt.sign(payload, JWTSecretKey, {'expiresIn': '30m'});
+
+            res.cookie('jwtToken', jwtToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                maxAge: 30 * 60 * 1000
+            })
+
+        } else{
+            await addNewPublicLobby(requestedLobby, ownerId);
+        }
+        
         return res.status(201).json({lobbyId: requestedLobby});
 
     }catch(err){
         res.status(503).json({lobbyId:-1, ownerId:true, connectionSuccess: false});
-        console.log("ERROR IN CONNECTING TO DB TO MAKE LOBBY AND ADD USER: ", err);
     }
 });
 
@@ -71,21 +102,47 @@ app.post('/lobbies/:lobbyId/join', async(req, res)=>{
     const name = req.body.name;
 
     try{
-        const activeLobbies = await getActiveLobbies()
-        if (!activeLobbies.has(lobbyId)){
-            return res.status(400).json({ message: "lobby does not exist" })
+        const lobbyType = await getLobbyType(lobbyId);
+        if (!lobbyType){
+            return res.status(404).json({ message: "lobby does not exist" })
         }
+
+        if (lobbyType === 'private'){
+            let token = null;
+            const authHeader = req.headers['authorization'];
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                token = authHeader.split(' ')[1];
+            } else if (req.cookies.jwtToken) {
+                token = req.cookies.jwtToken;
+            }
+
+            if (!token){
+                return res.status(401).json({message: "Private Lobby, Use Password"})
+            }
+
+            try{
+                const decoded = jwt.verify(token, JWTSecretKey);
+
+                if (decoded.lobbyId !== lobbyId){
+                    return res.status(403).json({message: "Wrong Lobby Token"});
+                }
+            } catch(err){
+                return res.status(401).json({message: "Invalid or Expired Token"})
+            }
+        }
+
         await addUser(lobbyId, userId, name);
 
         const ownerId = await getOwner(lobbyId);
         const start = await isStarted(lobbyId);
 
-        res.status(201).json({ ownerId, start })
+        res.status(200).json({ ownerId, start })
     } catch(err){
-        console.log("ERROR IN ADDING USER TO DB: ", err);
-        res.status(503).json({message: "Failed to join lobby"});
+        res.status(500).json({message: "Failed to join lobby"});
     }
 });
+
+
 
 app.post('/lobbies/:lobbyId/info', async(req, res)=>{
     const lobbyId = req.params.lobbyId;
@@ -100,7 +157,6 @@ app.post('/lobbies/:lobbyId/info', async(req, res)=>{
         await addLobbyDetails(lobbyId, timeLimit);
         res.status(201).json({success: true});
     } catch(err){
-        console.log(err);
         res.status(503).json({success: false});
     }
 
@@ -129,12 +185,12 @@ app.get('/lobbies/:lobbyId/solvedQuestions', async(req, res)=>{
     }
 });
 
-app.get('/lastSubmission', async(req, res)=>{
+app.get('/latestSubmission', async(req, res)=>{
     const userName = req.query.userName;
 
     try{
-        const lastQuestion = await getLastSubmission(userName);
-        res.status(200).json({lastQuestion});
+        const latestQuestion = await getLatestSubmission(userName);
+        res.status(200).json({latestQuestion});
     } catch(err){
         res.status(400).json({message: 'Bad User Name'})
     }
@@ -159,10 +215,79 @@ app.get('/lobbies/:lobbyId/leaderboard', async(req, res)=>{
         const leaderboard = await getLeaderboard(lobbyId);
         res.status(200).json({leaderboard});
     } catch(err){
-        console.log(err);
         res.status(503).end();
     }
 });
+
+app.get('/lobbies/:lobbyId/lobbyType', async(req, res)=>{
+    try{
+        const lobbyId = req.params.lobbyId;
+        const lobbyType = await getLobbyType(lobbyId);
+
+        if (!lobbyType){
+            return res.status(400).json({message: "Lobby does not Exists"});
+        }
+
+        return res.status(200).json({lobbyType});
+    } catch(err){
+        return res.status(500).json({message: "Network Error"});
+    }
+})
+
+app.post('/lobbies/:lobbyId/generateJWT', async(req, res)=>{
+    const lobbyId = req.params.lobbyId;
+    const {password} = req.body;
+
+    if(!password){
+        return res.status(400).json({message: "Private Lobby, Requires Password"});
+    }
+
+    try{
+        const actualPassword = await getPassword(lobbyId);
+
+        if(!actualPassword){
+            return res.status(404).json({ message: "Private lobby not found or does not have a password." });
+        }
+
+        const isPasswordCorrect = await bcrypt.compare(password, actualPassword)
+        if (!isPasswordCorrect) {
+            return res.status(401).json({ message: "Wrong Password" });
+        }
+
+        const {starttime, createtime, timelimit} = await getLobbyCreateStartTime(lobbyId);
+        let expirationSeconds;
+        const now = new Date();
+
+        if (starttime === null) {
+            const deletionTime = new Date(new Date(createtime).getTime() + 30 * 60 * 1000);
+            const remainingMs = deletionTime.getTime() - now.getTime();
+            expirationSeconds = Math.floor(remainingMs / 1000);
+        } else{
+            const gameEndTime = new Date(new Date(starttime).getTime() + timelimit * 60 * 1000 + 30*60*1000);
+            const remainingMs = gameEndTime.getTime() - now.getTime();
+            expirationSeconds = Math.floor(remainingMs / 1000);
+        }
+
+        if(expirationSeconds <= 0){
+            return res.status(410).json({message: "Lobby ended, will soon be deleted"})
+        }
+
+        const payload = { lobbyId: lobbyId };
+        const jwtToken = jwt.sign(payload, JWTSecretKey, { 'expiresIn': expirationSeconds });
+
+        res.cookie('jwtToken', jwtToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            maxAge: expirationSeconds * 1000
+        });
+        return res.status(200).json({message: "Welcome to Lobby", jwtToken});
+
+    } catch(err){
+        console.log(err);
+        return res.status(500).json({message: "Network Error"})
+    }
+
+})
 
 // WebSockets CODE
 
@@ -182,8 +307,8 @@ io.on("connection", (socket) =>{
         socketToUser.set(socket.id, {userId, lobbyId, name});
     });
 
-    socket.on("chatMsg", ({lobbyId, name, message}) =>{
-        io.to(lobbyId).emit("chatMsg", {name, message});
+    socket.on("chatMsg", ({lobbyId, name, message, userId}) =>{
+        io.to(lobbyId).emit("chatMsg", {name, message, userId});
     });
 
     socket.on("startMatch", ({lobbyId})=>{
@@ -218,4 +343,5 @@ io.on("connection", (socket) =>{
 
 server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
+    startCleanupService(io, socketToUser, disconnectTimers);
 })

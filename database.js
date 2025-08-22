@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
 import format from 'pg-format';
 import dotenv from 'dotenv';
+import bcrypt from 'bcrypt';
 dotenv.config();
 
 
@@ -24,10 +25,27 @@ async function getActiveLobbies() {
     return activeIDs;
 }
 
-async function addNewLobby(lobbyID, ownerId) {
-    let query = 'insert into lobby(lobbyid, ownerid) values($1, $2);';
-    await pool.query(query, [lobbyID, ownerId]);
+async function addNewPublicLobby(lobbyID, ownerId) {
+    let query = 'insert into lobby(lobbyid, ownerid, lobby_type) values($1, $2, $3);';
+    await pool.query(query, [lobbyID, ownerId, "public"]);
 }
+
+async function addNewPrivateLobby(lobbyId, ownerId, password){
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const query = 'insert into lobby(lobbyid, ownerid, lobby_type, password) values($1, $2, $3, $4);';
+    await pool.query(query, [lobbyId, ownerId, "private", hashedPassword]);
+}
+
+async function getLobbyType(lobbyId){
+    const query = 'SELECT lobby_type FROM lobby WHERE lobbyid = $1;';
+    const res = await pool.query(query, [lobbyId]);
+    if (res.rows.length > 0) {
+        return res.rows[0].lobby_type;
+    } else {
+        return null;
+    }
+};
 
 async function addUser(lobbyId, userId, name) {
     const query = `
@@ -311,6 +329,24 @@ async function generateQuestions(topics, totalQuestions, difficulty){
     return result;
 }
 
-export {getActiveLobbies, addNewLobby, addUser, removeUser, getUsers, getOwner, 
+async function getPassword(lobbyId){
+    const query = 'select password from lobby where lobbyid = $1;';
+    const res = await pool.query(query, [lobbyId]);
+
+    const data = res.rows;
+    if(data.length === 0){
+        return null;
+    }
+    return data[0].password;
+}
+
+async function getLobbyCreateStartTime(lobbyId){
+    const query = 'select createtime, starttime, timelimit from lobby where lobbyid = $1;';
+    const { rows } = await pool.query(query, [lobbyId]);
+    return rows[0];
+}
+
+export {getActiveLobbies, addNewPublicLobby, addUser, removeUser, getUsers, getOwner, 
         addLobbyDetails, addQuestions, getQuestions, isStarted, getStartTime, getTimeLimit, getSolvedQuestions,
-        addSubmittedQuestion, getLeaderboard, generateQuestions};
+        addSubmittedQuestion, getLeaderboard, generateQuestions, addNewPrivateLobby, getLobbyType, getPassword,
+        getLobbyCreateStartTime, pool};
