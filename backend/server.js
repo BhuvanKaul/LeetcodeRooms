@@ -16,6 +16,8 @@ import bcrypt from 'bcrypt';
 import { startCleanupService } from './services/lobbyCleanupService.js';
 import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
+import morgan from 'morgan';
+import logger from './logger.js';
 
 dotenv.config();
 
@@ -36,14 +38,8 @@ const io = new Server(server, {
 });
 
 const redisClient = createClient();
-redisClient.on('error', err => console.log('Redis Client Error', err));
-await redisClient.connect()
-const pubClient = redisClient.duplicate();
-await pubClient.connect();
-const subClient = redisClient.duplicate();
-await subClient.connect();
+redisClient.on('error', err => logger.error('Redis Client Error', err));
 
-io.adapter(createAdapter(pubClient, subClient));
 
 const reconnectGracePeriod = 5000;
 const JWTSecretKey = process.env.JWT_SECRET_KEY;
@@ -57,6 +53,16 @@ app.use(cors({
     ],
     credentials: true
 }));
+
+const morganMiddleware = morgan(
+    ':method :url :status :res[content-length] - :response-time ms', 
+    {
+        stream: {
+            write: (message) => logger.http(message.trim()),
+        },
+    }
+);
+app.use(morganMiddleware);
 
 
 app.post('/lobbies', async (req, res)=> {
@@ -77,8 +83,8 @@ app.post('/lobbies', async (req, res)=> {
             requestedLobby = makeLobbyID();
             retry += 1;
         }
-
         if (retry >= maxRetry){
+            logger.error(`Failed to generate a unique lobby ID after ${maxRetry} attempts.`);
             return res.status(503).json({lobbyId: -1, ownerId:true, connectionSuccess: true});
         }
         if(lobbyType === 'private'){
@@ -101,6 +107,7 @@ app.post('/lobbies', async (req, res)=> {
         return res.status(201).json({lobbyId: requestedLobby});
 
     }catch(err){
+        logger.error(`An unexpected error occurred while creating a lobby for owner ${ownerId}: ${err.message}`, err);
         res.status(503).json({lobbyId:-1, ownerId:true, connectionSuccess: false});
     }
 });
@@ -148,6 +155,7 @@ app.post('/lobbies/:lobbyId/join', async(req, res)=>{
 
         res.status(200).json({ ownerId, start,participants })
     } catch(err){
+        logger.error(`Failed to join lobby ${lobbyId} for user ${userId}`, err);
         res.status(500).json({message: "Failed to join lobby"});
     }
 });
@@ -161,12 +169,13 @@ app.post('/lobbies/:lobbyId/info', async(req, res)=>{
     const timeLimit = req.body.timeLimit;
     const difficulty = req.body.difficulty;
 
-    const questions = await generateQuestions(lobbyTopics, numberOfQues, difficulty);
     try{
+        const questions = await generateQuestions(lobbyTopics, numberOfQues, difficulty);
         await addQuestions(lobbyId, questions);
         await addLobbyDetails(lobbyId, timeLimit);
         res.status(201).json({success: true});
     } catch(err){
+        logger.error(`Failed to add lobby info/questions for lobby ${lobbyId}`, err);
         res.status(503).json({success: false});
     }
 
@@ -180,6 +189,7 @@ app.get('/lobbies/:lobbyId/info', async(req, res)=>{
         const timeLimit = await getTimeLimit(lobbyId);
         res.status(200).json({questions, startTime, timeLimit});
     } catch(err){
+        logger.error(`Failed to retrieve lobby info for lobby ${lobbyId}`, err);
         res.status(503).end();
     }
 });
@@ -191,6 +201,7 @@ app.get('/lobbies/:lobbyId/solvedQuestions', async(req, res)=>{
         const solvedQuestions = await getSolvedQuestions(lobbyId, userId);
         res.status(200).json({solvedQuestions: solvedQuestions});
     } catch(err){
+        logger.error(`Failed to retrieve solved questions for lobby ${lobbyId}`, err);
         res.status(503).json({error: 'Could not get questions'});
     }
 });
@@ -202,6 +213,7 @@ app.get('/latestSubmission', async(req, res)=>{
         const latestQuestion = await getLatestSubmission(userName);
         res.status(200).json({latestQuestion});
     } catch(err){
+        logger.error(`Failed to get latest submission for user: ${userName}`, err);
         res.status(400).json({message: 'Bad User Name'})
     }
 });
@@ -215,6 +227,7 @@ app.post('/lobbies/:lobbyId/submit', async(req, res)=>{
         await addSubmittedQuestion(lobbyId, userId, question);
         res.status(200).json({submitted: true});
     } catch(err){
+        logger.error(`Failed to submit question for user ${userId} in lobby ${lobbyId}`, err);
         res.status(503).json({submitted: false});
     }
 });
@@ -225,6 +238,7 @@ app.get('/lobbies/:lobbyId/leaderboard', async(req, res)=>{
         const leaderboard = await getLeaderboard(lobbyId);
         res.status(200).json({leaderboard});
     } catch(err){
+        logger.error(`Failed to get leaderboard for lobby ${lobbyId}`, err);
         res.status(503).end();
     }
 });
@@ -240,9 +254,10 @@ app.get('/lobbies/:lobbyId/lobbyType', async(req, res)=>{
 
         return res.status(200).json({lobbyType});
     } catch(err){
+        logger.error(`Failed to get lobby type for lobby ${lobbyId}`, err);
         return res.status(500).json({message: "Network Error"});
     }
-})
+});
 
 app.post('/lobbies/:lobbyId/generateJWT', async(req, res)=>{
     const lobbyId = req.params.lobbyId;
@@ -294,29 +309,33 @@ app.post('/lobbies/:lobbyId/generateJWT', async(req, res)=>{
         return res.status(200).json({message: "Welcome to Lobby", jwtToken});
 
     } catch(err){
-        console.log(err);
+        logger.error(`Failed to generate JWT for lobby ${lobbyId}`, err);
         return res.status(500).json({message: "Network Error"})
     }
 
-})
+});
 
 // WebSockets CODE
 
 io.on("connection", (socket) =>{
     
     socket.on("joinLobby", async({lobbyId, userId, name}) => {
-        const reconnected = await redisClient.del(`disconnect:${userId}`);
+        try{
+            const reconnected = await redisClient.del(`disconnect:${userId}`);
 
-        if (!reconnected) {
-            io.to(lobbyId).emit('userJoined', {name});
+            if (!reconnected) {
+                io.to(lobbyId).emit('userJoined', {name});
+            }
+
+            socket.join(lobbyId);
+            const users = await getUsers(lobbyId);
+            io.to(lobbyId).emit('participantsUpdate', {users});
+
+            const socketInfo = JSON.stringify({ userId, lobbyId, name });
+            await redisClient.set(`socket:${socket.id}`, socketInfo, { 'EX': 18000 }); // 5hours   
+        } catch(err){
+            logger.error(`Error in joinLobby event for user ${userId} in lobby ${lobbyId}`, err);
         }
-
-        socket.join(lobbyId);
-        const users = await getUsers(lobbyId);
-        io.to(lobbyId).emit('participantsUpdate', {users});
-
-        const socketInfo = JSON.stringify({ userId, lobbyId, name });
-        await redisClient.set(`socket:${socket.id}`, socketInfo, { 'EX': 18000 }); // 5hours
     });
 
     socket.on("chatMsg", ({lobbyId, name, message, userId}) =>{
@@ -328,29 +347,37 @@ io.on("connection", (socket) =>{
     })
 
     socket.on("disconnect", async ()=>{
-        const socketInfoJSON = await redisClient.get(`socket:${socket.id}`);
+        try{
+            const socketInfoJSON = await redisClient.get(`socket:${socket.id}`);
 
-        if (socketInfoJSON){
-            const { userId, lobbyId, name } = JSON.parse(socketInfoJSON);
-            const redisExpirationSeconds = Math.ceil(reconnectGracePeriod / 1000) + 5;
+            if (socketInfoJSON){
+                const { userId, lobbyId, name } = JSON.parse(socketInfoJSON);
+                const redisExpirationSeconds = Math.ceil(reconnectGracePeriod / 1000) + 5;
 
-            await redisClient.set(`disconnect:${userId}`, lobbyId, {
-                'EX': redisExpirationSeconds
-            });
-            
-            setTimeout(async () => {
-                const stillDisconnected = await redisClient.exists(`disconnect:${userId}`);
+                await redisClient.set(`disconnect:${userId}`, lobbyId, {
+                    'EX': redisExpirationSeconds
+                });
                 
-                if (stillDisconnected) {
-                    await removeUser(userId, lobbyId);
-                    const users = await getUsers(lobbyId);
-                    io.to(lobbyId).emit("leaveLobby", {name});
-                    io.to(lobbyId).emit('participantsUpdate', {users});
-                    await redisClient.del(`disconnect:${userId}`);
-                }
-            }, reconnectGracePeriod);
+                setTimeout(async () => {
+                    try{
+                        const stillDisconnected = await redisClient.exists(`disconnect:${userId}`);
+                    
+                        if (stillDisconnected) {
+                            await removeUser(userId, lobbyId);
+                            const users = await getUsers(lobbyId);
+                            io.to(lobbyId).emit("leaveLobby", {name});
+                            io.to(lobbyId).emit('participantsUpdate', {users});
+                            await redisClient.del(`disconnect:${userId}`);
+                        }
+                    }catch(err){
+                        logger.error(`Error in disconnect timeout for user ${userId} from lobby ${lobbyId}`, err);
+                    }
+                }, reconnectGracePeriod);
 
-            await redisClient.del(`socket:${socket.id}`);
+                await redisClient.del(`socket:${socket.id}`);
+            }
+        }catch(err){
+            logger.error(`Error in disconnect event for socket ${socket.id}`, err);
         }
     });
 
@@ -361,8 +388,24 @@ io.on("connection", (socket) =>{
 
 });
 
+const startServer = async () => {
+    try {
+        await redisClient.connect();
+        const pubClient = redisClient.duplicate();
+        await pubClient.connect();
+        const subClient = redisClient.duplicate();
+        await subClient.connect();
 
-server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}`);
-    startCleanupService(io);
-})
+        io.adapter(createAdapter(pubClient, subClient));
+
+        server.listen(port, () => {
+            logger.info(`Server running on http://localhost:${port}`);
+            startCleanupService(io);
+        });
+
+    } catch (err) {
+        logger.error('Application shutting down due to an error:', err);
+    }
+};
+
+startServer();
