@@ -1,0 +1,219 @@
+import styles from './createRoomPopup.module.css'
+import {Users, Lock, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
+
+function CreateRoomPopup(props){
+    const serverIP = import.meta.env.VITE_SERVER_IP;
+    const navigate = useNavigate();
+    const [ showPopup, 
+            setShowPopup, 
+            setShowCreateLobbyError] = 
+
+          [ props.showPopup, 
+            props.setShowPopup, 
+            props.setShowCreateLobbyError];
+            
+    const [lobbyType, setLobbyType] = useState('public');
+    const popupContainerRef = useRef(null);
+    const nameRef = useRef(null);
+    const passwordRef = useRef(null);
+    const [nameError, setNameError] = useState(false);
+    const [showEmptyNameError, setShowEmptyNameError] = useState(false);
+    const [showLongNameError, setShowLongNameError] = useState(false);
+    const [creatingLobby, setCreatingLobby] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+
+    const handleCancelButton = () => {
+        setShowPopup(false);
+    };
+
+    const handleLobbyTypeChange = (e) =>{
+        setLobbyType(e.target.value);
+    };
+
+    useEffect(()=>{
+        const handleClickOutside = (e)=>{
+            if (popupContainerRef.current && !popupContainerRef.current.contains(e.target)){
+                setShowPopup(false);
+            };
+        }
+
+        if (showPopup){
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        }
+    }, [showPopup])
+
+    useEffect(()=>{
+        const timeOutId = setTimeout(()=>{
+            setNameError(false);
+        },300);
+        
+        return()=> clearTimeout(timeOutId);
+    }, [nameError]);
+
+    const handleCreateLobby = async() => {
+        setCreatingLobby(true);
+        let userId = localStorage.getItem('userId');
+        if (!userId){
+            userId = uuidv4();
+            localStorage.setItem('userId', userId);
+        }
+
+        if (!nameRef.current || (lobbyType === 'private' && !passwordRef.current)){
+            setCreatingLobby(false);
+            return;
+        }
+        const name = nameRef.current.value.trim();
+        if (name === ''){
+            setNameError(true);
+            setShowLongNameError(false);
+            setShowEmptyNameError(true);
+            setCreatingLobby(false);
+            return;
+        } else if(name.length > 20){
+            setNameError(true);
+            setShowLongNameError(true);
+            setShowEmptyNameError(false);
+            setCreatingLobby(false);
+            return;
+        }
+        localStorage.setItem('name', name);
+
+        try{
+            const response = await fetch(`${serverIP}/lobbies`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    lobbyType: lobbyType,
+                    password: passwordRef.current ? passwordRef.current.value : null
+                }),
+                credentials: 'include'
+            })
+            if (!response.ok){
+                throw new Error(`BAD HTTP STATUS: ${response.status}`);
+            }
+            const data = await response.json();
+            const createdLobbyId = data.lobbyId;
+            
+            navigate(`/lobbies/${createdLobbyId}`);
+        
+        }catch(err){
+            setShowCreateLobbyError(true);
+        } finally{
+            setCreatingLobby(false);
+        }
+    };
+
+    return (
+        <div className={styles.backdrop}>
+            <div ref = {popupContainerRef} className={styles.popupContainer}>
+                <div className={styles.headingContainer}>
+                    <h3>
+                        Create New Lobby
+                    </h3>
+                </div>
+
+                <div className={styles.nameContainer}>
+                    <h4>Your Name</h4>
+                    <input type="text" placeholder='Enter Name' ref={nameRef} className={nameError? styles.shake : ''}/>
+
+                    {showLongNameError && 
+                    <div className={styles.errorMessage}>
+                        Name should be 20 characters or less
+                    </div>
+                    }
+
+                    {showEmptyNameError && 
+                    <div className={styles.errorMessage}>
+                        Name cannot be blank
+                    </div>
+                    }
+                    
+                </div>
+
+                <div className={styles.lobbyTypeContainer}>
+                    <h4 className={styles.lobbyTypeText}>Lobby Type</h4>
+
+                    <div className={styles.lobbyTypeButtonContainer}>
+
+                        <label htmlFor="public-lobby" className={styles.publicContainer}>
+                            <input  
+                                type='radio'
+                                value='public' 
+                                checked={lobbyType==='public'}
+                                onChange={handleLobbyTypeChange}
+                                id="public-lobby"
+                            />
+                            <Users/>
+                            <div className={styles.publicText}>
+                                <h4>Public</h4>
+                                <p>Anyone can join</p>
+                            </div>
+                        </label>
+
+                        <label htmlFor="private-lobby" className={styles.privateContainer}>
+                            <input  
+                                type='radio'
+                                value='private' 
+                                checked={lobbyType==='private'}
+                                onChange={handleLobbyTypeChange}
+                                id="private-lobby"
+                            />
+                            <Lock/>
+                            <div className={styles.privateText}>
+                                <h4>Private</h4>
+                                <p>Password protected</p>
+                            </div>
+                        </label>
+
+                    </div>
+
+                </div>
+                    
+                {lobbyType === 'private' && <div className={styles.passwordContainer}>
+                    <h4>Password</h4>
+                    <div className={styles.passwordInputContainer}>
+                            <input  className={styles.passwordInput} 
+                                    type = {showPassword ? 'text': 'password'}
+                                    placeholder='Enter Password...' 
+                                    ref={passwordRef}/>
+                            <button type="button"
+                                    className={styles.togglePasswordButton}
+                                    onClick={() => {setShowPassword(prvs => !prvs)}}>
+                                
+                                {showPassword ? <EyeOff /> : <Eye />}
+                            </button>
+                    </div>
+                </div>}
+
+                <div className={styles.buttonContainer}>
+                    <div className={styles.cancelButtonContainer}>
+                        <button onClick={handleCancelButton}>Cancel</button>
+                    </div>
+                    <div className={styles.createButtonContainer}>
+                        <button onClick={handleCreateLobby} disabled={creatingLobby}>
+                            {creatingLobby ? 
+                                <div className={styles.loaderForCreateButton}>
+                                    <div className={`${styles.dot} ${styles.dotOne}`}></div>
+                                    <div className={`${styles.dot} ${styles.dotTwo}`}></div>
+                                    <div className={`${styles.dot} ${styles.dotThree}`}></div>
+                                </div>
+
+                                :"Create Lobby"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default CreateRoomPopup;

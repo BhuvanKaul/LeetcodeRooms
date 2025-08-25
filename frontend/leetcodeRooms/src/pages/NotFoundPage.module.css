@@ -1,0 +1,83 @@
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height: 100vh;
+    background-color: hsl(270, 8%, 12%);
+    color: hsl(270, 20%, 95%);
+    padding: 2rem;
+    box-sizing: border-box;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    max-width: 500px;
+}
+
+.icon {
+    width: 60px;
+    height: 60px;
+    color: hsl(265, 85%, 70%);
+}
+
+.heading {
+    font-size: 6rem;
+    font-weight: 800;
+    line-height: 1;
+    color: hsl(270, 20%, 95%);
+}
+
+.subheading {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: hsl(270, 10%, 75%);
+}
+
+.text {
+    font-size: 1rem;
+    color: hsl(270, 10%, 65%);
+    margin-bottom: 1.5rem;
+}
+
+.homeButton {
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    
+    color: white;
+    background: linear-gradient(135deg, hsl(265, 85%, 70%), hsl(280, 85%, 60%));
+    box-shadow: 0 4px 15px hsla(270, 85%, 65%, 0.2);
+    transition: all 0.2s ease-out;
+}
+
+.homeButton:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px hsla(270, 85%, 65%, 0.3);
+}
+
+@media screen and (max-width: 768px) {
+    .icon {
+        width: 50px;
+        height: 50px;
+    }
+
+    .heading {
+        font-size: 4rem;
+    }
+
+    .subheading {
+        font-size: 1.25rem;
+    }
+
+    .text {
+        font-size: 0.9rem;
+    }
+}

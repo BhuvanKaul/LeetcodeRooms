@@ -1,0 +1,261 @@
+.backdrop{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    z-index: 3;
+    top:0;
+    left: 0;
+    height: 100dvh;
+    width: 100dvw;
+    background: hsla(270, 8%, 12%, 0.7);
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.2s ease-out forwards;
+}
+.popupContainer{
+    display: flex;  
+    flex-direction: column;
+    gap: 15px;
+    position: fixed;
+    z-index: 2;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width:100%;
+    max-width: 450px;
+    padding: 30px 20px;
+    border-radius: 1.5rem;
+    background-color: hsl(270, 8%, 15%);
+    border: 1px solid hsl(270, 8%, 25%);
+    animation: scaleUp 0.2s ease-out forwards;
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleUp {
+    from {
+        opacity: 0;
+       
+        transform: translate(-50%, -50%) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+.headingContainer{
+    font-size: 1.2rem;
+}
+.lobbyTypeText{
+    margin-bottom: 10px;
+}
+
+.publicContainer, .privateContainer{
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    background-color: hsl(270, 8%, 20%);
+    border: 2px solid hsl(270, 8%, 30%);
+    transition: all 0.2s ease-in-out;
+}
+.publicContainer input, .privateContainer input{
+    cursor: pointer;
+}
+.publicContainer:has(input:checked), .privateContainer:has(input:checked) {
+    border-color: hsl(265, 85%, 70%);
+    background-color: hsla(265, 85%, 70%, 0.1);
+}
+.publicContainer{
+    margin-bottom: 10px;
+}
+.publicText, .privateText{
+    display: flex;
+    flex-direction: column;
+    color: hsl(270, 10%, 75%);
+}
+.publicText h4, .privateText h4 {
+    color: hsl(270, 20%, 95%);
+    cursor: pointer;
+}
+.publicText p, .privateText p {
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.passwordContainer{
+    opacity: 0;
+    animation: fadeInUp 0.4s ease-out forwards;
+}
+.passwordInput{
+    width: 100%;
+    box-sizing: border-box;
+    height: 2.5rem;
+    font-size: 1rem;
+    background-color: hsl(270, 8%, 12%);
+    border: 1px solid hsl(270, 8%, 30%);
+    color: hsl(270, 20%, 95%);
+    padding: 0 40px 0 12px;
+    border-radius: 8px;
+}
+.passwordInput:focus {
+    outline: none;
+    border-color: hsl(265, 85%, 70%);
+}
+
+.buttonContainer{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap:30px;
+    margin-top: 10px;
+    padding-top: 15px;
+    border-top: 1px solid hsl(270, 8%, 25%);
+}
+
+.cancelButtonContainer, .createButtonContainer{
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+}
+
+.buttonContainer button{
+    padding: 10px;
+    font-size: 1.1rem;
+    width: 100%;
+    max-width: 200px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease-out;
+    height: 42px;
+}
+.cancelButtonContainer button {
+    background-color: transparent;
+    border: 1px solid hsl(270, 8%, 40%);
+    color: hsl(270, 10%, 75%);
+}
+.cancelButtonContainer button:hover {
+    background-color: hsl(270, 8%, 25%);
+    color: white;
+}
+.createButtonContainer button {
+    border: none;
+    color: white;
+    background: linear-gradient(135deg, hsl(265, 85%, 70%), hsl(280, 85%, 60%));
+}
+.createButtonContainer button:hover {
+    transform: translateY(-2px);
+}
+.nameContainer input{
+    font-size: 1rem;
+    height: 2.5rem;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 5px;
+    background-color: hsl(270, 8%, 12%);
+    border: 1px solid hsl(270, 8%, 30%);
+    color: hsl(270, 20%, 95%);
+    padding: 0 12px;
+    border-radius: 8px;
+    transition: border-color 0.2s ease; 
+}
+.nameContainer input:focus {
+    outline: none;
+    border-color: hsl(265, 85%, 70%);
+}
+.errorMessage{
+    margin-top: 5px;
+    font-size: 0.85rem;
+    color: red;
+}
+.nameContainer input.shake{
+    border: 1px solid red;
+    animation: shake 0.3s ease;
+}
+.passwordInputContainer{
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+.togglePasswordButton {
+    position: absolute;
+    padding: 0 12px;
+    
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: hsl(270, 10%, 75%);
+    transition: color 0.2s ease;
+}
+
+.togglePasswordButton:hover {
+    color: hsl(270, 20%, 95%);
+}
+
+.togglePasswordButton svg {
+    width: 20px;
+    height: 20px;
+}
+
+.loaderForCreateButton{
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+}
+.dot{
+    width: 0.5rem;
+    height: 0.5rem;
+    background-color: white;
+    border-radius: 50%;
+    animation: bounce 1.4s ease-in-out infinite both;
+}
+.dotOne {
+    animation-delay: 0s;
+}
+
+.dotTwo {
+    animation-delay: 0.15s;
+}
+
+.dotThree {
+    animation-delay: 0.3s;
+}
+@keyframes bounce {
+    0%, 80%, 100% {
+        transform: scale(0);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+}

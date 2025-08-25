@@ -1,0 +1,22 @@
+.timerContainer{
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+
+    background-color: hsl(270, 8%, 20%);
+    border: 1px hsl(270, 8%, 30%) solid;
+    color: hsl(270, 10, 75%);
+    border-radius: 0.5rem;
+
+    font-variant: tabular-nums;
+    font-family: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', "Liberation Mono", "Courier New", monospace;
+}
+
+.timerLabel{
+    font-size: 1rem;
+    font-weight: 400;
+    margin-right: 0.5rem;
+}
+

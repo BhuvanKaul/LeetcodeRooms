@@ -1,0 +1,205 @@
+.settingsContainer{
+    flex: 1;
+    padding: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid hsl(270, 8%, 25%);
+    border-radius: 10px;
+    padding: 1rem;
+}
+.settingsHeading{
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    color: hsl(270, 20%, 95%);
+    border-bottom: 1px solid hsl(270, 8%, 25%);
+}
+.settingsHeading h2 {
+    font-size: 1.3rem;
+}
+
+.settingsHeading svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+.topicTextRandomButtonContainer {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    justify-content: space-between;
+}
+.topicTextRandomButtonContainer p {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: hsl(270, 10%, 85%);
+}
+.topicsList{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+}
+.notSelectedTopic, .selectedTopic, .noTopics {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-width: 1px;
+    border-style: solid;
+    transition: all 0.2s ease;
+}
+.notSelectedTopic{
+    cursor: pointer;
+    border-color: hsl(270, 8%, 30%);
+    background-color: hsl(270, 8%, 20%);
+    color: hsl(270, 10%, 75%);
+}
+.notSelectedTopic:hover {
+    transform: scale(1.05);
+    background-color: hsl(270, 8%, 25%);
+    border-color: hsl(270, 8%, 40%);
+}
+.selectedTopic{
+    cursor: pointer;
+    color: white;
+    background-color: hsl(265, 85%, 70%);
+    border-color: hsl(265, 85%, 70%);
+}
+.selectedTopic:hover{
+    transform: scale(1.075);
+    opacity: 0.9;
+}
+.noTopics{
+    cursor: not-allowed;
+    border-color: hsl(270, 8%, 25%);
+    background-color: hsl(270, 8%, 15%);
+    color: hsl(270, 8%, 40%);
+    opacity: 0.7;
+}
+
+.randomOn, .randomOff {
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    border-width: 2px;
+    border-style: solid;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.randomToggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.randomToggle input {
+    display: none;
+}
+
+.toggleText {
+    font-weight: 500;
+    color: hsl(270, 10%, 75%);
+    transition: color 0.3s ease;
+}
+
+.slider {
+    position: relative;
+    width: 48px;
+    height: 26px;
+    background-color: hsl(270, 8%, 25%);
+    border-radius: 26px;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+}
+
+.slider::before {
+    content: '';
+    position: absolute;
+    left: 3px;
+    width: 20px;
+    height: 20px;
+    background-color: hsl(270, 8%, 45%);
+    border-radius: 50%;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.randomIcon {
+    position: absolute;
+    right: 5px;
+    width: 14px;
+    height: 14px;
+    color: hsl(270, 8%, 45%);
+    transition: all 0.3s ease;
+}
+
+.randomToggle input:checked ~ .slider {
+    background: linear-gradient(135deg, hsl(265, 85%, 70%), hsl(280, 85%, 60%));
+}
+
+.randomToggle input:checked ~ .slider::before {
+    transform: translateX(22px);
+    background-color: white;
+}
+
+.randomToggle input:checked ~ .slider > .randomIcon {
+    transform: translateX(-22px);
+    color: white;
+}
+
+.randomToggle input:checked ~ .toggleText {
+    color: hsl(270, 20%, 95%);
+}
+
+
+.chosenTopics{
+    font-size: 0.8rem;
+    margin-top: 1rem;
+    color: hsl(270, 10%, 65%);
+}
+
+.lobbyOptionsContainer{
+    flex: 1;
+    display: flex;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    gap: 1.5rem;
+    border-top: 1px solid hsl(270, 8%, 25%);
+}
+.numberOfQuestions, .timeLimit, .difficulty{
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.numberOfQuestions p, .timeLimit p, .difficulty p {
+    font-size: 1rem;
+    font-weight: 500;
+    color: hsl(270, 10%, 85%);
+}
+.numberOfQuestions select,  .timeLimit select, .difficulty select{
+    width: 100%;
+    max-height: 35px;
+    flex: 1;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    border-radius: 0.5rem;
+    min-height: 30px;
+    background-color: hsl(270, 8%, 20%);
+    border: 1px solid hsl(270, 8%, 30%);
+    color: hsl(270, 20%, 95%);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+}
+
+.numberOfQuestions select:focus, .timeLimit select:focus, .difficulty select:focus {
+    outline: none;
+    border-color: hsl(265, 85%, 70%);
+}
