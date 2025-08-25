@@ -14,7 +14,8 @@ import cookieParser from 'cookie-parser';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { startCleanupService } from './services/lobbyCleanupService.js';
-
+import { createClient } from 'redis';
+import { createAdapter } from '@socket.io/redis-adapter';
 
 dotenv.config();
 
@@ -34,18 +35,25 @@ const io = new Server(server, {
     }
 });
 
-const socketToUser = new Map();
-const reconnectGracePeriod = 3000;
-const disconnectTimers = new Map();
+const redisClient = createClient();
+redisClient.on('error', err => console.log('Redis Client Error', err));
+await redisClient.connect()
+const pubClient = redisClient.duplicate();
+await pubClient.connect();
+const subClient = redisClient.duplicate();
+await subClient.connect();
+
+io.adapter(createAdapter(pubClient, subClient));
+
+const reconnectGracePeriod = 5000;
 const JWTSecretKey = process.env.JWT_SECRET_KEY;
 
 app.use(cookieParser());
 app.use(express.json());
-app.use(express.static('public'));
 app.use(cors({
     origin: [
             "http://localhost:5173",
-            "http://192.168.1.55:5173"
+            "http://192.168.1.55:5173",
     ],
     credentials: true
 }));
@@ -82,7 +90,8 @@ app.post('/lobbies', async (req, res)=> {
             res.cookie('jwtToken', jwtToken, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                maxAge: 30 * 60 * 1000
+                maxAge: 30 * 60 * 1000,
+                sameSite: 'None'
             })
 
         } else{
@@ -135,8 +144,9 @@ app.post('/lobbies/:lobbyId/join', async(req, res)=>{
 
         const ownerId = await getOwner(lobbyId);
         const start = await isStarted(lobbyId);
+        const participants = await getUsers(lobbyId);
 
-        res.status(200).json({ ownerId, start })
+        res.status(200).json({ ownerId, start,participants })
     } catch(err){
         res.status(500).json({message: "Failed to join lobby"});
     }
@@ -278,7 +288,8 @@ app.post('/lobbies/:lobbyId/generateJWT', async(req, res)=>{
         res.cookie('jwtToken', jwtToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            maxAge: expirationSeconds * 1000
+            maxAge: expirationSeconds * 1000,
+            sameSite: 'None'
         });
         return res.status(200).json({message: "Welcome to Lobby", jwtToken});
 
@@ -294,17 +305,18 @@ app.post('/lobbies/:lobbyId/generateJWT', async(req, res)=>{
 io.on("connection", (socket) =>{
     
     socket.on("joinLobby", async({lobbyId, userId, name}) => {
-        if (disconnectTimers.has(userId)){
-            clearTimeout(disconnectTimers.get(userId));
-            disconnectTimers.delete(userId);
-        } else{
+        const reconnected = await redisClient.del(`disconnect:${userId}`);
+
+        if (!reconnected) {
             io.to(lobbyId).emit('userJoined', {name});
         }
 
         socket.join(lobbyId);
-        const users =  await getUsers(lobbyId);
+        const users = await getUsers(lobbyId);
         io.to(lobbyId).emit('participantsUpdate', {users});
-        socketToUser.set(socket.id, {userId, lobbyId, name});
+
+        const socketInfo = JSON.stringify({ userId, lobbyId, name });
+        await redisClient.set(`socket:${socket.id}`, socketInfo, { 'EX': 18000 }); // 5hours
     });
 
     socket.on("chatMsg", ({lobbyId, name, message, userId}) =>{
@@ -316,26 +328,35 @@ io.on("connection", (socket) =>{
     })
 
     socket.on("disconnect", async ()=>{
-        const info = socketToUser.get(socket.id);
-        if (info){
-            const {userId, lobbyId, name } = info;
+        const socketInfoJSON = await redisClient.get(`socket:${socket.id}`);
 
-            const timerId = setTimeout(async()=>{
-                await removeUser(userId, lobbyId);
-                const users = await getUsers(lobbyId);
-                io.to(lobbyId).emit("leaveLobby", {name});
-                io.to(lobbyId).emit('participantsUpdate', {users});
+        if (socketInfoJSON){
+            const { userId, lobbyId, name } = JSON.parse(socketInfoJSON);
+            const redisExpirationSeconds = Math.ceil(reconnectGracePeriod / 1000) + 5;
 
-                disconnectTimers.delete(userId);
-            }, reconnectGracePeriod)
+            await redisClient.set(`disconnect:${userId}`, lobbyId, {
+                'EX': redisExpirationSeconds
+            });
+            
+            setTimeout(async () => {
+                const stillDisconnected = await redisClient.exists(`disconnect:${userId}`);
+                
+                if (stillDisconnected) {
+                    await removeUser(userId, lobbyId);
+                    const users = await getUsers(lobbyId);
+                    io.to(lobbyId).emit("leaveLobby", {name});
+                    io.to(lobbyId).emit('participantsUpdate', {users});
+                    await redisClient.del(`disconnect:${userId}`);
+                }
+            }, reconnectGracePeriod);
 
-            disconnectTimers.set(userId, timerId);
-            socketToUser.delete(socket.id);
+            await redisClient.del(`socket:${socket.id}`);
         }
     });
 
-    socket.on('new-submission', ({lobbyId})=>{
+    socket.on('new-submission', ({lobbyId, questionNumber, name})=>{
         io.to(lobbyId).emit('leaderboard-updated');
+        io.to(lobbyId).emit('submission-message', {name, questionNumber});
     });
 
 });
@@ -343,5 +364,5 @@ io.on("connection", (socket) =>{
 
 server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
-    startCleanupService(io, socketToUser, disconnectTimers);
+    startCleanupService(io);
 })

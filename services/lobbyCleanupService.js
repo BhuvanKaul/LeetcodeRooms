@@ -1,56 +1,53 @@
 import cron from 'node-cron';
 import { pool } from '../database.js';
 
-async function deleteExpiredLobbies(io, socketToUser, disconnectTimers) {
+const cleanupLockKey = 12123;
 
-    try{
-    
+async function deleteExpiredLobbies(io) {
+    const client = await pool.connect();
+    let lockAcquired = false;
+    try {
+        const lockResult = await client.query('SELECT pg_try_advisory_lock($1)', [cleanupLockKey]);
+        lockAcquired = lockResult.rows[0].pg_try_advisory_lock;
+
+        if (!lockAcquired) {
+            return;
+        }
+
         const selectQuery = `
-                            select lobbyid from lobby where 
-                            (starttime is null and createtime < now() - interval '30 minutes')
-                            or
-                            (starttime is not null and starttime + (timelimit * interval '1 minute') + interval '30 minutes' < now());
-        `
-        const { rows } = await pool.query(selectQuery);
+            SELECT lobbyid FROM lobby WHERE 
+            (starttime IS NULL AND createtime < NOW() - INTERVAL '30 minutes')
+            OR
+            (starttime IS NOT NULL AND starttime + (timelimit * INTERVAL '1 minute') + INTERVAL '30 minutes' < NOW());
+        `;
+        
+        const { rows } = await client.query(selectQuery);
 
-        if (rows.length === 0){
+        if (rows.length === 0) {
             return;
         }
 
         const lobbyIdsToDelete = rows.map(lobby => lobby.lobbyid);
 
-        lobbyIdsToDelete.forEach(lobbyId => {
+        await Promise.all(lobbyIdsToDelete.map(async (lobbyId) => {
             io.to(lobbyId).emit('lobby-deletion');
+            const sockets = await io.in(lobbyId).fetchSockets();
+            sockets.forEach(socket => socket.disconnect(true));
+        }));
 
-            const clientsInRoom = io.sockets.adapter.rooms.get(lobbyId);
-            if (clientsInRoom) {
-                clientsInRoom.forEach(socketId => {
-                    const userInfo = socketToUser.get(socketId);
-                    if (userInfo) {
-                        socketToUser.delete(socketId);
-                        const pendingTimer = disconnectTimers.get(userInfo.userId);
-                        if (pendingTimer) {
-                            clearTimeout(pendingTimer);
-                            disconnectTimers.delete(userInfo.userId);
-                        }
-                    }
-                    
-                    const socket = io.sockets.sockets.get(socketId);
-                    if (socket) {
-                        socket.leave(lobbyId);
-                    }
-                });
-            }
-        });
+        const deleteQuery = 'DELETE FROM lobby WHERE lobbyid = ANY($1::text[])';
+        await client.query(deleteQuery, [lobbyIdsToDelete]);
 
-        const deleteQuery = 'delete from lobby where lobbyid = any($1::text[])';
-        await pool.query(deleteQuery, [lobbyIdsToDelete]);
-
-    } catch(err){
-        //do nothing
+    } catch (err) {
+        console.error('Error during lobby cleanup:', err);
+    } finally{
+        if (lockAcquired){
+            await client.query('SELECT pg_advisory_unlock($1)', [cleanupLockKey])
+        }
+        client.release();
     }
 }
 
-export function startCleanupService(io, socketToUser, disconnectTimers){
-    cron.schedule('* * * * *', ()=>deleteExpiredLobbies(io, socketToUser, disconnectTimers));
-};  
+export function startCleanupService(io){
+    cron.schedule('* * * * *', ()=>deleteExpiredLobbies(io));
+};
