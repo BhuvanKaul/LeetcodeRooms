@@ -39,4 +39,5 @@
     border-radius: 1rem;
     width: 400px;
     min-height: 400px;
+    min-width: 400px;
 }
