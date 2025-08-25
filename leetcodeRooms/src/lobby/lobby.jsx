@@ -17,7 +17,7 @@ import { replace, useNavigate } from "react-router-dom";
 
 function Lobby() {
     const navigate = useNavigate();
-    const [participants, setParticipants] = useState([]);
+    const {participants, setParticipants} = useContext(participantsContext);
     const [chosenTopics, setChosenTopics] = useState([]);
     const [started, setStarted] = useContext(competitionStarted);
     const [randomTopic, setRandomTopic] = useState(true);
@@ -33,7 +33,6 @@ function Lobby() {
     const [lobbyOver, setLobbyOver] = useContext(lobbyOverContext);
     const [showLobbyOverPopup, setShowLobbyOverPopup] = useState(true);
 
-    const participantsVal = useMemo(()=> ({ participants, setParticipants }), [participants]);
     const chosenTopicsVal = useMemo(() => ({ chosenTopics, setChosenTopics }), [chosenTopics]);
     const randomTopicVal = useMemo(() => ({ randomTopic, setRandomTopic }), [randomTopic]);
 
@@ -61,10 +60,6 @@ function Lobby() {
         const socket = io(serverIP);
         socketRef.current = socket;
 
-        socket.on('connect', ()=>{
-            console.log('socket id is ', socket.id);
-        })
-
         if (lobbyId && userId && name) {
             socket.emit('joinLobby', { lobbyId, userId, name });
         }
@@ -90,6 +85,12 @@ function Lobby() {
         });
         
         socket.on('leaderboard-updated', fetchLeaderboard);
+
+        socket.on('submission-message', ({name, questionNumber}) =>{
+            setMessages((prev) => [...prev, {
+                type: 'userSubmission', name, questionNumber
+            }]);
+        });
 
         socket.on('leaveLobby', ({ name }) =>{
              setMessages((prev) => [...prev, {
@@ -131,9 +132,7 @@ function Lobby() {
             <div className={styles.mainContainer}>
                 { !started && 
                     <div className={styles.lobbyInfo}>
-                        <participantsContext.Provider value={participantsVal}>
                             <Participants/>
-                        </participantsContext.Provider>
                         {isOwner && 
                             <chosenTopicsContext.Provider value={chosenTopicsVal}>
                             <randomTopicContext.Provider value={randomTopicVal}>

@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState, useRef } from 'react';
-import { questionsContext, lobbyIdContext, userIdContext, socketContext, lobbyOverContext} from '../Contexts';
+import { questionsContext, lobbyIdContext, userIdContext, socketContext, lobbyOverContext, nameContext} from '../Contexts';
 import styles from './Questions.module.css';
 import { CircleQuestionMark } from 'lucide-react';
 import submissionGuideImage from '../assets/submissionGuide.webp';
@@ -22,6 +22,8 @@ function Questions() {
     const [showWrongQuestionError, setShowWrongQuestionError] = useState(false);
     const [showBadUsernameError, setShowBadUsernameError] = useState(false);
     const [lobbyOver, setLobbyOver] = useContext(lobbyOverContext);
+    const name = useContext(nameContext);
+
 
     useEffect(() => {
         if (showWrongQuestionError) {
@@ -65,9 +67,9 @@ function Questions() {
         leetcodeUsernameRef.current = leetcodeUsernameInputRef.current.value;
     }
 
-    const handleSubmitQuestion = async(question) => {
-        const leetcodeUsername = leetcodeUsernameRef.current;
+    const handleSubmitQuestion = async(question, questionNumber) => {
         setSubmittingQuestion(prvs => [...prvs, question]);
+        const leetcodeUsername = leetcodeUsernameRef.current;
         
         try{
             if (!leetcodeUsername){
@@ -80,6 +82,9 @@ function Questions() {
 
             const data = await res.json()
             const latestQuestion = data.latestQuestion;
+            if (latestQuestion.length === 0){
+                throw Error('Bad Username');
+            }
 
             if (latestQuestion.includes(question)){
 
@@ -88,14 +93,14 @@ function Questions() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userId, question })
                 });
-                
+                console.log(res);
                 if (!res.ok){
                     throw Error('Server Error');
                 }
                 setSolvedQuestions(prvs => [...prvs, question]);
                 
                 if (socketRef.current){
-                    socketRef.current.emit('new-submission', {lobbyId});
+                    socketRef.current.emit('new-submission', {lobbyId, questionNumber, name});
                 }
             } else{
                 setShowWrongQuestionError(true);
@@ -128,7 +133,7 @@ function Questions() {
 
             {showBadUsernameError && (
                 <div className="errorMessage">
-                    No such user found! Enter your leetcode username carefully.
+                    No such user found or no questions solved!
                 </div>
             )}
 
@@ -187,7 +192,7 @@ function Questions() {
                                 {!solvedQuestions.includes(question) &&
                                     <button
                                         className={styles.submitButton}
-                                        onClick={() => handleSubmitQuestion(question)}
+                                        onClick={() => handleSubmitQuestion(question, index + 1)}
                                         disabled={lobbyOver || submittingQuestion.includes(question)}
                                     >
                                         {submittingQuestion.includes(question) ? (

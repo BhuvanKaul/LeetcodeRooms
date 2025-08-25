@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useParams, useNavigate } from 'react-router-dom';
 import Lobby from '../lobby/lobby.jsx';
 import { lobbyIdContext, userIdContext, nameContext, ownerIdContext, competitionStarted, lobbyDetails, 
         questionsContext, sendDataContext, startTimeContext, timeLimitContext, lobbyInitializationContext,
-        lobbyOverContext } from '../Contexts.js';
+        lobbyOverContext, participantsContext } from '../Contexts.js';
 import LoadingScreen from '../LoadingScreen/LoadingScreen.jsx';
 import { useLocation } from 'react-router-dom';
 
@@ -14,6 +14,7 @@ function Room() {
     const {lobbyId} = useParams();
     const userId = localStorage.getItem('userId') || uuidv4();
     localStorage.setItem('userId',userId);
+    const [participants, setParticipants] = useState([]);
     const [ownerId, setOwnerId] = useState(null);
     const [started, setStarted] = useState(false);
     const [questions, setQuestions] = useState([]);
@@ -32,6 +33,8 @@ function Room() {
     const difficulty = useRef('Progressive');
 
     const name = localStorage.getItem('name') || 'Smarty Pants';
+
+    const participantsVal = useMemo(()=> ({ participants, setParticipants }), [participants]);
 
     useEffect(() => {
         if (showStartError) {
@@ -62,6 +65,7 @@ function Room() {
                 const data = await joinRes.json();
                 setOwnerId(data.ownerId);
                 setStarted(data.start);
+                setParticipants(data.participants);
                 setIsInitialized(true);
 
             } catch (error) {
@@ -152,7 +156,9 @@ useEffect(()=>{
             <timeLimitContext.Provider value={timeLimitRef}>
             <lobbyInitializationContext.Provider value={isInitialized}>
             <lobbyOverContext.Provider value={[lobbyOver, setLobbyOver]}>
+            <participantsContext.Provider value={participantsVal}>
                 {isInitialized? <Lobby /> : <LoadingScreen text="Joining Lobby ..." />}
+            </participantsContext.Provider>
             </lobbyOverContext.Provider>
             </lobbyInitializationContext.Provider>
             </timeLimitContext.Provider>

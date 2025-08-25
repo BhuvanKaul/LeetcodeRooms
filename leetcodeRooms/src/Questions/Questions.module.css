@@ -109,7 +109,10 @@
     animation: fadeIn-Up 0.3s ease-out;
 }
 
-.guideContainer:hover .submitHelper {
+.submitGuide:hover + .submitHelper{
+    display: flex;
+}
+.submitHelper:hover{
     display: flex;
 }
 

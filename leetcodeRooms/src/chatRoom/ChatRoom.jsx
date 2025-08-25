@@ -51,6 +51,12 @@ function ChatRoom({ messages, sendMessage }) {
                                 <strong>{msg.name}</strong> left the lobby
                             </div>
                         )
+                    } else if (msg.type === 'userSubmission'){
+                        return (
+                            <div key={index} className={styles.systemMessage}>
+                                <strong>{msg.name}</strong> submited Question {msg.questionNumber}
+                            </div>
+                        )
                     }
 
                     return(

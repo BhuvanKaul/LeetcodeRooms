@@ -44,14 +44,14 @@ function DeletionTimer({ competitionEndTime }) {
     if(!timeLeft){
         return (
             <div className={styles.timerContainer}>
-                Lobby will soon be deleted
+                Lobby will soon be destroyed
             </div>
         )
     }
 
     return (
         <div className={styles.timerContainer}>
-            <span className={styles.timerLabel}> Lobby deletes in: </span>
+            <span className={styles.timerLabel}> Lobby destroys in: </span>
             <span> {timeLeft.minutes} </span> :
             <span> {timeLeft.seconds} </span>
         </div>

@@ -1,5 +1,4 @@
 .chatContainer {
-    min-width: 400px;
     display: flex;
     flex-direction: column;
     height: 100%

@@ -2,6 +2,7 @@ import styles from './joinRoomPopup.module.css';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 
 function JoinRoomPopup (props){
     const serverIP = import.meta.env.VITE_SERVER_IP;
@@ -103,6 +104,7 @@ function JoinRoomPopup (props){
                 }
             }
         } catch (err) {
+            console.log(err);
             setNetworkError(true);
         } finally {
             setIsJoining(false);
