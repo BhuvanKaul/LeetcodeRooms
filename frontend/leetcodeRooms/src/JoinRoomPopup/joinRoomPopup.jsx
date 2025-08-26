@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import DOMPurify from 'dompurify';
 
 function JoinRoomPopup (props){
     const serverIP = import.meta.env.VITE_SERVER_IP;
@@ -22,6 +23,8 @@ function JoinRoomPopup (props){
     const [networkError, setNetworkError] = useState(false);
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [passwordError, setPasswordError] = useState(false);
+    const [showPasswordError, setShowPasswordError] = useState(false);
 
     useEffect(() => {
         if (lobbyError || networkError || wrongPasswordError) {
@@ -49,7 +52,8 @@ function JoinRoomPopup (props){
         setWrongPasswordError(false)
 
         setIsJoining(true);
-        const name = nameRef.current.value.trim();
+        const rawName = nameRef.current.value.trim();
+        const name = DOMPurify.sanitize(rawName);
 
         if (name === ''){
             setNameError(true);
@@ -66,7 +70,8 @@ function JoinRoomPopup (props){
         }
         
         localStorage.setItem('name', name);
-        const lobbyId = lobbyIdInputRef.current.value;
+        const rawLobbyId = lobbyIdInputRef.current.value;
+        const lobbyId = DOMPurify.sanitize(rawLobbyId);
 
         try {
             const typeResponse = await fetch(`${serverIP}/lobbies/${lobbyId}/lobbyType`);
@@ -88,6 +93,14 @@ function JoinRoomPopup (props){
                 } else {
                     const userId = localStorage.getItem('userId') || uuidv4();
                     localStorage.setItem('userId', userId);
+                    
+                    const passwordRegex = /^\w+$/;
+                    if (!passwordRegex.test(password)){
+                        setPasswordError(true);
+                        setShowPasswordError(true);
+                        setIsJoining(false);
+                        return;
+                    }
 
                     const joinResponse = await fetch(`${serverIP}/lobbies/${lobbyId}/generateJWT`, {
                         method: 'POST',
@@ -104,7 +117,6 @@ function JoinRoomPopup (props){
                 }
             }
         } catch (err) {
-            console.log(err);
             setNetworkError(true);
         } finally {
             setIsJoining(false);
@@ -125,6 +137,14 @@ function JoinRoomPopup (props){
             document.removeEventListener('mousedown', handleOutsideClick);
         }
     }, [showPopup])
+
+    useEffect(()=>{
+        const timeOutId = setTimeout(()=>{
+            setPasswordError(false);
+        },300);
+        
+        return()=> clearTimeout(timeOutId);
+    }, [passwordError]);
 
     useEffect(()=>{
         const timeOutId = setTimeout(()=>{
@@ -181,7 +201,7 @@ function JoinRoomPopup (props){
                         <div className={styles.passwordInputContainer}>
                             <input  type= {showPassword? 'text' : "password"}
                                 placeholder='Enter lobby password'
-                                className={styles.idInput}
+                                className={`${styles.passwordInput} ${passwordError ? styles.shake : ''}`}
                                 value={password}
                                 onChange= {(e)=>{setPassword(e.target.value)}}
                                  />
@@ -193,6 +213,12 @@ function JoinRoomPopup (props){
                                 {showPassword ? <EyeOff /> : <Eye />}
                             </button>
                         </div>
+
+                        {showPasswordError &&
+                            <div className={styles.errorMessage}>
+                                Invalid password (use only letters, numbers, _ ).
+                            </div>
+                        }
                         
                     </div>
                 }

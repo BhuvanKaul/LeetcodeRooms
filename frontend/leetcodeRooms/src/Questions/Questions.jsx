@@ -6,6 +6,7 @@ import submissionGuideImage from '../assets/submissionGuide.webp';
 import { Check } from 'lucide-react';
 import Leaderboard from '../Leaderboard/Leaderboard';
 import { FaTasks, FaTrophy } from 'react-icons/fa';
+import DOMPurify from 'dompurify';
 
 function Questions() {
     const serverIP = import.meta.env.VITE_SERVER_IP;
@@ -69,7 +70,8 @@ function Questions() {
 
     const handleSubmitQuestion = async(question, questionNumber) => {
         setSubmittingQuestion(prvs => [...prvs, question]);
-        const leetcodeUsername = leetcodeUsernameRef.current;
+        const rawLeetcodeUsername = leetcodeUsernameRef.current;
+        const leetcodeUsername = DOMPurify.sanitize(rawLeetcodeUsername);
         
         try{
             if (!leetcodeUsername){
@@ -93,7 +95,6 @@ function Questions() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userId, question })
                 });
-                console.log(res);
                 if (!res.ok){
                     throw Error('Server Error');
                 }

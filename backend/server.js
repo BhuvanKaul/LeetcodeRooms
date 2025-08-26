@@ -24,15 +24,18 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const allowedOrigins = ["https://leetjam.online"]
+
+if (process.env.NODE_ENV === 'development'){
+    allowedOrigins.push("http://192.168.1.55:5173")
+}
+
 const app = express();
 const port = 3000;
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: [
-            "http://localhost:5173",
-            "http://192.168.1.55:5173"
-        ],
+        origin: allowedOrigins,
         methods: ["GET", "POST"]
     }
 });
@@ -46,11 +49,9 @@ const JWTSecretKey = process.env.JWT_SECRET_KEY;
 
 app.use(cookieParser());
 app.use(express.json());
+
 app.use(cors({
-    origin: [
-            "http://localhost:5173",
-            "http://192.168.1.55:5173",
-    ],
+    origin: allowedOrigins,
     credentials: true
 }));
 
@@ -97,7 +98,7 @@ app.post('/lobbies', async (req, res)=> {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 maxAge: 30 * 60 * 1000,
-                sameSite: 'None'
+                sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax',
             })
 
         } else{
@@ -304,7 +305,7 @@ app.post('/lobbies/:lobbyId/generateJWT', async(req, res)=>{
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             maxAge: expirationSeconds * 1000,
-            sameSite: 'None'
+            sameSite: process.env.NODE_ENV === 'production' ? 'Strict' : 'Lax',
         });
         return res.status(200).json({message: "Welcome to Lobby", jwtToken});
 
@@ -407,5 +408,14 @@ const startServer = async () => {
         logger.error('Application shutting down due to an error:', err);
     }
 };
+
+if (process.env.NODE_ENV === 'production') {
+    const frontendBuildPath = path.resolve(__dirname, '..', 'frontend', 'leetcodeRooms', 'dist');
+
+    app.use(express.static(frontendBuildPath));
+    app.get('*', (req, res) => {
+        res.sendFile(path.resolve(frontendBuildPath, 'index.html'));
+    });
+}
 
 startServer();

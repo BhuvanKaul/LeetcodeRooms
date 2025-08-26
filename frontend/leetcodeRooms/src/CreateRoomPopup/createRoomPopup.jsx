@@ -3,6 +3,7 @@ import {Users, Lock, Eye, EyeOff } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
+import DOMPurify from 'dompurify';
 
 function CreateRoomPopup(props){
     const serverIP = import.meta.env.VITE_SERVER_IP;
@@ -24,6 +25,8 @@ function CreateRoomPopup(props){
     const [showLongNameError, setShowLongNameError] = useState(false);
     const [creatingLobby, setCreatingLobby] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [passwordError, setPasswordError] = useState(false);
+    const [showPasswordError, setShowPasswordError] = useState(false);
 
     const handleCancelButton = () => {
         setShowPopup(false);
@@ -56,6 +59,14 @@ function CreateRoomPopup(props){
         return()=> clearTimeout(timeOutId);
     }, [nameError]);
 
+    useEffect(()=>{
+        const timeOutId = setTimeout(()=>{
+            setPasswordError(false);
+        },300);
+        
+        return()=> clearTimeout(timeOutId);
+    }, [passwordError]);
+
     const handleCreateLobby = async() => {
         setCreatingLobby(true);
         let userId = localStorage.getItem('userId');
@@ -68,7 +79,11 @@ function CreateRoomPopup(props){
             setCreatingLobby(false);
             return;
         }
-        const name = nameRef.current.value.trim();
+        const rawName = nameRef.current.value.trim();
+        const name = DOMPurify.sanitize(rawName);
+        const password = passwordRef.current ?  passwordRef.current.value : '' ;
+
+
         if (name === ''){
             setNameError(true);
             setShowLongNameError(false);
@@ -84,6 +99,16 @@ function CreateRoomPopup(props){
         }
         localStorage.setItem('name', name);
 
+        if(lobbyType === 'private'){
+            const passwordRegex = /^\w+$/;
+            if (!passwordRegex.test(password)){
+                setPasswordError(true);
+                setShowPasswordError(true);
+                setCreatingLobby(false);
+                return;
+            }
+        }
+
         try{
             const response = await fetch(`${serverIP}/lobbies`, {
                 method: 'POST',
@@ -93,7 +118,7 @@ function CreateRoomPopup(props){
                 body: JSON.stringify({
                     userId: userId,
                     lobbyType: lobbyType,
-                    password: passwordRef.current ? passwordRef.current.value : null
+                    password: password
                 }),
                 credentials: 'include'
             })
@@ -181,7 +206,7 @@ function CreateRoomPopup(props){
                 {lobbyType === 'private' && <div className={styles.passwordContainer}>
                     <h4>Password</h4>
                     <div className={styles.passwordInputContainer}>
-                            <input  className={styles.passwordInput} 
+                            <input className={`${styles.passwordInput} ${passwordError ? styles.shake : ''}`} 
                                     type = {showPassword ? 'text': 'password'}
                                     placeholder='Enter Password...' 
                                     ref={passwordRef}/>
@@ -192,6 +217,13 @@ function CreateRoomPopup(props){
                                 {showPassword ? <EyeOff /> : <Eye />}
                             </button>
                     </div>
+
+                    {showPasswordError &&
+                         <div className={styles.errorMessage}>
+                            Invalid password (use only letters, numbers, _ ).
+                        </div>
+                    }
+
                 </div>}
 
                 <div className={styles.buttonContainer}>
