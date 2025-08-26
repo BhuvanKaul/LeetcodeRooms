@@ -169,7 +169,7 @@ function Questions() {
                             <ol>
                                 <li>Enter Leetcode Username</li>
                                 <li>Solve and submit the question on leetcodes</li>
-                                <li>Submit on LeetRooms</li>
+                                <li>Submit on LeetJam</li>
                             </ol>
                             <i>
                                 <p className={styles.margin_bottom}>Please make sure that the submission is within your 3 most recent submissions  </p>   

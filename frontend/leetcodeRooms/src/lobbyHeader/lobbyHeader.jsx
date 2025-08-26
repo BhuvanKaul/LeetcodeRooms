@@ -28,7 +28,7 @@ function LobbyHeader() {
 
     return (
         <div className={styles.lobbyHeaderContainer}>
-            <h1>LeetRooms</h1>
+            <h1>LeetJam</h1>
             <div className={styles.headerRightSide}>
                 <div className={styles.lobbyId}>Lobby ID: {lobbyId}</div>
                 {!started && isOwner &&
