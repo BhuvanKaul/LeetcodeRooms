@@ -10,7 +10,7 @@ function Footer(){
                     <div className={styles.logoContainer}>
                         <Code className={styles.codeLogo}/>
                     </div>
-                    <h2 className={styles.websiteName}>LeetRooms</h2>
+                    <h2 className={styles.websiteName}>LeetJam</h2>
                 </div>
                 <p>Leetcode with friends! Hell yeah.</p>
             </div>

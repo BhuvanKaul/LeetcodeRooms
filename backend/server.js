@@ -18,6 +18,8 @@ import { createClient } from 'redis';
 import { createAdapter } from '@socket.io/redis-adapter';
 import morgan from 'morgan';
 import logger from './logger.js';
+import { redisDisconnectCleanup } from './services/redisDisconnectCleanup.js';
+
 
 dotenv.config();
 
@@ -322,9 +324,18 @@ io.on("connection", (socket) =>{
     
     socket.on("joinLobby", async({lobbyId, userId, name}) => {
         try{
-            const reconnected = await redisClient.del(`disconnect:${userId}`);
+            const disconnectInfoJSON = await redisClient.get(`disconnect:${userId}`);
+            let isFastReconnect = false;
 
-            if (!reconnected) {
+            if (disconnectInfoJSON) {
+                const { disconnectTime } = JSON.parse(disconnectInfoJSON);
+                if (Date.now() - disconnectTime <= reconnectGracePeriod ) {
+                    isFastReconnect = true;
+                }
+                await redisClient.del(`disconnect:${userId}`);
+            }
+
+            if (!isFastReconnect) {
                 io.to(lobbyId).emit('userJoined', {name});
             }
 
@@ -353,28 +364,10 @@ io.on("connection", (socket) =>{
 
             if (socketInfoJSON){
                 const { userId, lobbyId, name } = JSON.parse(socketInfoJSON);
-                const redisExpirationSeconds = Math.ceil(reconnectGracePeriod / 1000) + 5;
+                const disconnectTime = Date.now();
+                const disconnectInfo = JSON.stringify({ name, lobbyId, disconnectTime });
 
-                await redisClient.set(`disconnect:${userId}`, lobbyId, {
-                    'EX': redisExpirationSeconds
-                });
-                
-                setTimeout(async () => {
-                    try{
-                        const stillDisconnected = await redisClient.exists(`disconnect:${userId}`);
-                    
-                        if (stillDisconnected) {
-                            await removeUser(userId, lobbyId);
-                            const users = await getUsers(lobbyId);
-                            io.to(lobbyId).emit("leaveLobby", {name});
-                            io.to(lobbyId).emit('participantsUpdate', {users});
-                            await redisClient.del(`disconnect:${userId}`);
-                        }
-                    }catch(err){
-                        logger.error(`Error in disconnect timeout for user ${userId} from lobby ${lobbyId}`, err);
-                    }
-                }, reconnectGracePeriod);
-
+                await redisClient.set(`disconnect:${userId}`, disconnectInfo, { 'EX': 3600 }); // 1 hour                
                 await redisClient.del(`socket:${socket.id}`);
             }
         }catch(err){
@@ -402,6 +395,7 @@ const startServer = async () => {
         server.listen(port, () => {
             logger.info(`Server running on http://localhost:${port}`);
             startCleanupService(io);
+            redisDisconnectCleanup(io, redisClient, reconnectGracePeriod)
         });
 
     } catch (err) {
