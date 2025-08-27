@@ -46,7 +46,7 @@ const redisClient = createClient();
 redisClient.on('error', err => logger.error('Redis Client Error', err));
 
 
-const reconnectGracePeriod = 5000;
+const reconnectGracePeriod = 3500;
 const JWTSecretKey = process.env.JWT_SECRET_KEY;
 
 app.use(cookieParser());
@@ -322,31 +322,25 @@ app.post('/lobbies/:lobbyId/generateJWT', async(req, res)=>{
 
 io.on("connection", (socket) =>{
     
-    socket.on("joinLobby", async({lobbyId, userId, name}) => {
-        try{
-            const disconnectInfoJSON = await redisClient.get(`disconnect:${userId}`);
-            let isFastReconnect = false;
+    socket.on("joinLobby", async ({ lobbyId, userId, name }) => {
+        try {
+            socket.userId = userId;
+            socket.lobbyId = lobbyId;
+            socket.name = name;
 
-            if (disconnectInfoJSON) {
-                const { disconnectTime } = JSON.parse(disconnectInfoJSON);
-                if (Date.now() - disconnectTime <= reconnectGracePeriod ) {
-                    isFastReconnect = true;
-                }
-                await redisClient.del(`disconnect:${userId}`);
-            }
-
-            if (!isFastReconnect) {
-                io.to(lobbyId).emit('userJoined', {name});
-            }
-
+            // we are counting because on spam reloading, the server will be filled with join events without actually getting the
+            // prvs socket disconnect events.  so multiple sockets exist for 1 user and we dont want multiple joins for same user
+            const lobbyConnectionCount = await redisClient.sCard(`user:${userId}:lobby:${lobbyId}:sockets`);
+            await redisClient.sAdd(`user:${userId}:lobby:${lobbyId}:sockets`, socket.id);
+            
             socket.join(lobbyId);
-            const users = await getUsers(lobbyId);
-            io.to(lobbyId).emit('participantsUpdate', {users});
-
-            const socketInfo = JSON.stringify({ userId, lobbyId, name });
-            await redisClient.set(`socket:${socket.id}`, socketInfo, { 'EX': 18000 }); // 5hours   
-        } catch(err){
-            logger.error(`Error in joinLobby event for user ${userId} in lobby ${lobbyId}`, err);
+            if (lobbyConnectionCount === 0) {
+                io.to(lobbyId).emit('userJoined', { name, userId });
+                const users = await getUsers(lobbyId);
+                io.to(lobbyId).emit('participantsUpdate', { users });
+            }
+        } catch (err) {
+            logger.error(`Error in joinLobby event for user ${userId}`, err);
         }
     });
 
@@ -358,20 +352,28 @@ io.on("connection", (socket) =>{
         io.to(lobbyId).emit('start');
     })
 
-    socket.on("disconnect", async ()=>{
-        try{
-            const socketInfoJSON = await redisClient.get(`socket:${socket.id}`);
+    socket.on("disconnect", async () => {
+        const { userId, lobbyId, name, id: socketId } = socket;
 
-            if (socketInfoJSON){
-                const { userId, lobbyId, name } = JSON.parse(socketInfoJSON);
-                const disconnectTime = Date.now();
-                const disconnectInfo = JSON.stringify({ name, lobbyId, disconnectTime });
+        if (userId && lobbyId) {
+            setTimeout(async () => {
+                try {
+                    // First, check if the user has already reconnected with a new socket.
+                    // If they have, the count will be greater than 1.
+                    // We still need to remove the OLD, disconnected socket.
+                    await redisClient.sRem(`user:${userId}:lobby:${lobbyId}:sockets`, socketId);
+                    const finalConnectionCount = await redisClient.sCard(`user:${userId}:lobby:${lobbyId}:sockets`);
 
-                await redisClient.set(`disconnect:${userId}`, disconnectInfo, { 'EX': 3600 }); // 1 hour                
-                await redisClient.del(`socket:${socket.id}`);
-            }
-        }catch(err){
-            logger.error(`Error in disconnect event for socket ${socket.id}`, err);
+                    if (finalConnectionCount === 0) {
+                        await removeUser(userId, lobbyId);
+                        const users = await getUsers(lobbyId);
+                        io.to(lobbyId).emit("leaveLobby", { name });
+                        io.to(lobbyId).emit('participantsUpdate', { users });
+                    }
+                } catch (err) {
+                    logger.error(`Error in disconnect timeout for user ${userId}`, err);
+                }
+            }, reconnectGracePeriod); 
         }
     });
 

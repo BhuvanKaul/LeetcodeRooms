@@ -72,9 +72,9 @@ function Lobby() {
             setStarted(true);
         });
 
-        socket.on('userJoined', ({ name }) => {
+        socket.on('userJoined', ({ name, userId }) => {
             setMessages((prev) => [...prev, {
-                type: 'systemJoin', name: name, timeStamp: new Date()
+                type: 'systemJoin', name: name, userId, timeStamp: new Date()
             }]);
         });
 

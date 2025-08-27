@@ -39,7 +39,7 @@ function ChatRoom({ messages, sendMessage }) {
         <div className={styles.chatContainer}> 
             <div className={styles.messages} ref={messagesRef}>
                 {messages.map((msg, index) => {
-                    if (msg.type === 'systemJoin'){
+                    if (msg.type === 'systemJoin' && msg.userId !== userId){
                         return (
                             <div key={index} className={styles.systemMessage}>
                                 <strong>{msg.name}</strong> joined the lobby
@@ -57,23 +57,23 @@ function ChatRoom({ messages, sendMessage }) {
                                 <strong>{msg.name}</strong> submited Question {msg.questionNumber}
                             </div>
                         )
+                    } else if (msg.type === 'chat'){
+                        return(
+                            <div key={index} className={styles.messageEntry} data-isme={msg.userId === userId ? 'true' : 'false'}>
+                                <div className={styles.messageHeader}>
+                                    <span className={styles.senderName}>
+                                        {msg.userId === userId ? 'You' : msg.name}
+                                    </span>
+                                    <span className={styles.timeStamp}>
+                                        {formatTimeStamp(msg.timeStamp)}
+                                    </span>
+                                </div>
+                                <div className={styles.messageBubble}>
+                                    {msg.message}
+                                </div>
+                            </div>
+                        );
                     }
-
-                    return(
-                        <div key={index} className={styles.messageEntry} data-isme={msg.userId === userId ? 'true' : 'false'}>
-                            <div className={styles.messageHeader}>
-                                <span className={styles.senderName}>
-                                    {msg.userId === userId ? 'You' : msg.name}
-                                </span>
-                                <span className={styles.timeStamp}>
-                                    {formatTimeStamp(msg.timeStamp)}
-                                </span>
-                            </div>
-                            <div className={styles.messageBubble}>
-                                {msg.message}
-                            </div>
-                        </div>
-                    );
                 })}
             </div>
             
